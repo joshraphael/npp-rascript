@@ -25,6 +25,12 @@ compile-x64: clean
 	# Link
 	x86_64-w64-mingw32-g++ -static-libstdc++ -static-libgcc -shared -o out/RAScript.dll out/rc.o out/RAScript.o -Wl,--out-implib=out/RAScript.dll.a
 
+compile-x64: clean
+	ARCH=x86_64 ./scripts/build.sh
+
+compile-Win32: clean
+	ARCH=i686 ./scripts/build.sh
+
 install: compile-x64
 	cp out/RAScript.dll ~/.wine/drive_c/Program\ Files/Notepad++/plugins/RAScript
 	make open

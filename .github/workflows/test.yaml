@@ -13,7 +13,7 @@ jobs:
     strategy:
       max-parallel: 1
       matrix:
-        build_platform: [x64]
+        build_platform: [x64, Win32]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
