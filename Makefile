@@ -12,20 +12,6 @@ clean:
 	cd src/notepad-plus-plus && git checkout tags/${NPP_VERSION}
 
 compile-x64: clean
-	# Plugin Info
-	x86_64-w64-mingw32-windres src/RAScript.rc -o out/rc.o
-
-	# RAScript
-	x86_64-w64-mingw32-g++ -std=c++17 -DUNICODE \
-	-Isrc/notepad-plus-plus/PowerEditor/src \
-	-Isrc/notepad-plus-plus/PowerEditor/src/MISC/PluginsManager \
-	-Isrc/notepad-plus-plus/scintilla/include \
-	-c src/RAScript.cpp -o out/RAScript.o
-
-	# Link
-	x86_64-w64-mingw32-g++ -static-libstdc++ -static-libgcc -shared -o out/RAScript.dll out/rc.o out/RAScript.o -Wl,--out-implib=out/RAScript.dll.a
-
-compile-x64: clean
 	ARCH=x86_64 ./scripts/build.sh
 
 compile-Win32: clean
