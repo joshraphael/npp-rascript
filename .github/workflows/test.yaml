@@ -21,8 +21,8 @@ jobs:
       - name: Setup Plugin Dependencies
         run: make deps
 
-      - name: Compile ${{ matrix.build_configuration }} Binary
-        run: make compile-${{ matrix.build_configuration }}
+      - name: Compile ${{ matrix.build_platform }} Binary
+        run: make compile-${{ matrix.build_platform }}
 
   test-win:
     runs-on: windows-latest

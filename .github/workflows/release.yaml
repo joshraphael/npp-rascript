@@ -1,3 +1,5 @@
+name: Release Plugin
+
 on:
   push:
     tags:
