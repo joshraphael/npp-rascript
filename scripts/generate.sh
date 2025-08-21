@@ -12,6 +12,4 @@ if [[ ${GITHUB_REF_NAME} != "" ]]; then
     VERSION_PATCH=$(echo "$VERSION" | cut -d'.' -f3)
 fi
 
-# echo ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}
-
 cat templates/RAScript.rc.template | envsubst > src/RAScript.rc

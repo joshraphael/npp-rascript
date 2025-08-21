@@ -4,7 +4,11 @@ NPP_VERSION := v8.8.5
 deps:
 	sudo apt-get install gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64 gcc-mingw-w64-i686 g++-mingw-w64-i686
 
-clean:
+generate:
+	rm -f src/RAScript.rc
+	./scripts/generate.sh
+
+clean: generate
 	rm -rf out
 	mkdir -p out
 	rm -rf src/notepad-plus-plus
