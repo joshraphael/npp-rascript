@@ -10,6 +10,10 @@ on:
 jobs:
   test-linux:
     runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 2
+      matrix:
+        build_platform: [x64]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -17,8 +21,8 @@ jobs:
       - name: Setup Plugin Dependencies
         run: make deps
 
-      - name: Compile x64 Binary
-        run: make compile-x64
+      - name: Compile ${{ matrix.build_configuration }} Binary
+        run: make compile-${{ matrix.build_configuration }}
 
   test-win:
     runs-on: windows-latest
