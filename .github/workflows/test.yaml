@@ -8,8 +8,21 @@ on:
       - '**'
 
 jobs:
-  test:
+  test-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Plugin Dependencies
+        run: make deps
+
+      - name: Compile x64 Binary
+        run: make compile-x64
+
+  test-win:
     runs-on: windows-latest
+    needs: test-linux
     strategy:
       max-parallel: 6
       matrix:
@@ -17,35 +30,35 @@ jobs:
         build_platform: [x64, Win32, ARM64]
 
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
     
-    - name: Setup NPP DEpendencies
-      run: make clean
+      - name: Setup NPP Dependencies
+        run: make clean
 
-    - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v2
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v2
 
-    - name: MSBuild of plugin dll
-      run: msbuild RAScript.vcxproj /m /p:configuration="${{ matrix.build_configuration }}" /p:platform="${{ matrix.build_platform }}"
+      - name: MSBuild of plugin dll
+        run: msbuild RAScript.vcxproj /m /p:configuration="${{ matrix.build_configuration }}" /p:platform="${{ matrix.build_platform }}"
 
-    - name: Archive artifacts for x64
-      if: matrix.build_platform == 'x64' && matrix.build_configuration == 'Release'
-      uses: actions/upload-artifact@v4
-      with:
+      - name: Archive artifacts for x64
+        if: matrix.build_platform == 'x64' && matrix.build_configuration == 'Release'
+        uses: actions/upload-artifact@v4
+        with:
           name: RAScript_x64
           path: bin64\RAScript.dll
 
-    - name: Archive artifacts for Win32
-      if: matrix.build_platform == 'Win32' && matrix.build_configuration == 'Release'
-      uses: actions/upload-artifact@v4
-      with:
+      - name: Archive artifacts for Win32
+        if: matrix.build_platform == 'Win32' && matrix.build_configuration == 'Release'
+        uses: actions/upload-artifact@v4
+        with:
           name: RAScript_x86
           path: bin\RAScript.dll
 
-    - name: Archive artifacts for ARM64
-      if: matrix.build_platform == 'ARM64' && matrix.build_configuration == 'Release'
-      uses: actions/upload-artifact@v4
-      with:
+      - name: Archive artifacts for ARM64
+        if: matrix.build_platform == 'ARM64' && matrix.build_configuration == 'Release'
+        uses: actions/upload-artifact@v4
+        with:
           name: RAScript_arm64
           path: arm64\RAScript.dll
