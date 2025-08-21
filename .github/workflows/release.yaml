@@ -1,0 +1,57 @@
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+name: Release Plugin
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+    
+    - name: Setup NPP Dependencies
+      run: make clean
+
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v2
+
+    - name: MSBuild of plugin dll x64
+      run: msbuild RAScript.vcxproj /m /p:configuration="Release" /p:platform="x64"
+    
+    - name: MSBuild of plugin dll Win32
+      run: msbuild RAScript.vcxproj /m /p:configuration="Release" /p:platform="Win32"
+    
+    - name: MSBuild of plugin dll ARM64
+      run: msbuild RAScript.vcxproj /m /p:configuration="Release" /p:platform="ARM64"
+    
+    - name: Zip Release Binaries
+      run: |
+        cd bin64
+        zip npp-rascript_${{ github.ref_name }}_x64.zip RAScript.dll
+        cd ..
+        mv bin64/npp-rascript_${{ github.ref_name }}_x64.zip .
+
+        cd bin
+        zip npp-rascript_${{ github.ref_name }}_Win32.zip RAScript.dll
+        cd ..
+        mv bin/npp-rascript_${{ github.ref_name }}_Win32.zip .
+
+        cd arm64
+        zip npp-rascript_${{ github.ref_name }}_ARM64.zip RAScript.dll
+        cd ..
+        mv arm64/npp-rascript_${{ github.ref_name }}_ARM64.zip .
+
+    - name: Release
+      uses: softprops/action-gh-release@v2
+      with:
+        body: Release tag ${{ github.ref_name }}
+        files: |
+          npp-rascript_${{ github.ref_name }}_x64.zip
+          npp-rascript_${{ github.ref_name }}_Win32.zip
+          npp-rascript_${{ github.ref_name }}_ARM64.zip
