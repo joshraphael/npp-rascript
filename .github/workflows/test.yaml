@@ -29,18 +29,18 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
           name: RAScript_x64
-          path: bin64\NppPluginTemplate.dll
+          path: bin64\RAScript.dll
 
     - name: Archive artifacts for Win32
       if: matrix.build_platform == 'Win32' && matrix.build_configuration == 'Release'
       uses: actions/upload-artifact@v4
       with:
           name: RAScript_x86
-          path: bin\NppPluginTemplate.dll
+          path: bin\RAScript.dll
 
     - name: Archive artifacts for ARM64
       if: matrix.build_platform == 'ARM64' && matrix.build_configuration == 'Release'
       uses: actions/upload-artifact@v4
       with:
           name: RAScript_arm64
-          path: arm64\NppPluginTemplate.dll
+          path: arm64\RAScript.dll
