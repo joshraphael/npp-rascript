@@ -14,6 +14,9 @@ jobs:
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4
+    
+    - name: Setup NPP DEpendencies
+      uses: make clean
 
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v2
