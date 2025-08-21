@@ -1,3 +1,5 @@
+name: Release Plugin
+
 on:
   push:
     tags:
@@ -6,7 +8,6 @@ on:
 permissions:
   contents: write
 
-name: Release Plugin
 jobs:
   release:
     runs-on: windows-latest
