@@ -33,17 +33,17 @@ jobs:
     - name: Zip Release Binaries
       run: |
         cd bin64
-        zip npp-rascript_${{ github.ref_name }}_x64.zip RAScript.dll
+        Compress-Archive -Path RAScript.dll -DestinationPath npp-rascript_${{ github.ref_name }}_x64.zip
         cd ..
         mv bin64/npp-rascript_${{ github.ref_name }}_x64.zip .
 
         cd bin
-        zip npp-rascript_${{ github.ref_name }}_Win32.zip RAScript.dll
+        Compress-Archive -Path RAScript.dll -DestinationPath npp-rascript_${{ github.ref_name }}_Win32.zip
         cd ..
         mv bin/npp-rascript_${{ github.ref_name }}_Win32.zip .
 
         cd arm64
-        zip npp-rascript_${{ github.ref_name }}_ARM64.zip RAScript.dll
+        Compress-Archive -Path RAScript.dll -DestinationPath npp-rascript_${{ github.ref_name }}_ARM64.zip
         cd ..
         mv arm64/npp-rascript_${{ github.ref_name }}_ARM64.zip .
 
