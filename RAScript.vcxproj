@@ -110,7 +110,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>src/notepad-plus-plus/PowerEditor/src;src/notepad-plus-plus/PowerEditor/src/MISC/PluginsManager;src\notepad-plus-plus\scintilla\include;src/notepad-plus-plus/lexilla/include;src/notepad-plus-plus/lexilla/lexlib;$(IncludePath)</IncludePath>
+    <IncludePath>src/notepad-plus-plus/PowerEditor/src;src/notepad-plus-plus/PowerEditor/src/MISC/PluginsManager;src/notepad-plus-plus/scintilla/include;src/notepad-plus-plus/lexilla/include;src/notepad-plus-plus/lexilla/lexlib;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <LinkIncremental>true</LinkIncremental>
