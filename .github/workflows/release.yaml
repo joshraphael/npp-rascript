@@ -13,37 +13,29 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - name: Setup WSL with dependencies
-      uses: Vampire/setup-wsl@v6
 
     - name: Checkout repo
       uses: actions/checkout@v4
     
     - name: Setup NPP Dependencies
-      shell: wsl-bash {0}
       run: sudo apt update && sudo apt upgrade -y && sudo apt install -y make build-essential
     
     - name: Setup NPP Dependencies
-      shell: wsl-bash {0}
-      run: make clean
+      run: make generate-win && make clean
 
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v2
 
     - name: MSBuild of plugin dll x64
-      shell: powershell
       run: msbuild RAScript.vcxproj /m /p:configuration="Release" /p:platform="x64"
     
     - name: MSBuild of plugin dll Win32
-      shell: powershell
       run: msbuild RAScript.vcxproj /m /p:configuration="Release" /p:platform="Win32"
     
     - name: MSBuild of plugin dll ARM64
-      shell: powershell
       run: msbuild RAScript.vcxproj /m /p:configuration="Release" /p:platform="ARM64"
     
     - name: Zip Release Binaries
-      shell: powershell
       run: |
         cd bin64
         Compress-Archive -Path RAScript.dll -DestinationPath npp-rascript_${{ github.ref_name }}_x64.zip

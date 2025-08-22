@@ -34,25 +34,17 @@ jobs:
         build_platform: [x64, Win32, ARM64]
 
     steps:
-      - name: Setup WSL with dependencies
-        uses: Vampire/setup-wsl@v6
 
       - name: Checkout repo
         uses: actions/checkout@v4
-      
+
       - name: Setup NPP Dependencies
-        shell: wsl-bash {0}
-        run: sudo apt update && sudo apt upgrade -y && sudo apt install -y make build-essential
-    
-      - name: Setup NPP Dependencies
-        shell: wsl-bash {0}
-        run: make clean
+        run: make generate-win && make clean
 
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
 
       - name: MSBuild of plugin dll
-        shell: powershell
         run: msbuild RAScript.vcxproj /m /p:configuration="${{ matrix.build_configuration }}" /p:platform="${{ matrix.build_platform }}"
 
       - name: Archive artifacts for x64

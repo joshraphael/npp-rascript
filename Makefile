@@ -8,17 +8,21 @@ generate:
 	rm -f src/RAScript.rc
 	./scripts/generate.sh
 
-clean: generate
+generate-win:
+	rm -f src\RAScript.rc
+	.\scripts\generate.ps1
+
+clean: # works on windows and linux, careful changing this
 	rm -rf out
 	mkdir -p out
 	rm -rf src/notepad-plus-plus
 	git submodule update --init --recursive
 	cd src/notepad-plus-plus && git checkout tags/${NPP_VERSION}
 
-compile-x64: clean
+compile-x64: generate clean
 	ARCH=x86_64 ./scripts/build.sh
 
-compile-Win32: clean
+compile-Win32: generate clean
 	ARCH=i686 ./scripts/build.sh
 
 install: compile-x64
