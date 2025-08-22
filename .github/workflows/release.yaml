@@ -13,11 +13,17 @@ jobs:
     runs-on: windows-latest
 
     steps:
+
     - name: Checkout repo
       uses: actions/checkout@v4
     
     - name: Setup NPP Dependencies
-      run: make clean
+      run: sudo apt update && sudo apt upgrade -y && sudo apt install -y make build-essential
+    
+    - name: Setup NPP Dependencies
+      run: |
+        .\scripts\generate.ps1
+        make clean
 
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v2

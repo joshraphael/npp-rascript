@@ -26,3 +26,4 @@ arm64/
 out/
 .vscode/settings.json
 *.vcxproj.user
+src/RAScript.rc

@@ -34,11 +34,14 @@ jobs:
         build_platform: [x64, Win32, ARM64]
 
     steps:
+
       - name: Checkout repo
         uses: actions/checkout@v4
-    
+
       - name: Setup NPP Dependencies
-        run: make clean
+        run: |
+          .\scripts\generate.ps1
+          make clean
 
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2

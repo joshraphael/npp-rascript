@@ -12,6 +12,8 @@ Notepad++ plugin to define RAScript grammar
 
 This plugin pulls the raw source code from [notepad-plus-plus](https://github.com/notepad-plus-plus/notepad-plus-plus) using git submodules. You cna use the pre defined make commands to build the DLL of the plugin and move it to your plugins folder. A provided [RAScript.vcxproj](RAScript.vcxproj) file is also included for those that use Windows to build this module.
 
+**Note:** If building on Windows, be sure to generate the [RAScript.rc file located in the templates folder](templates/RAScript.rc.template) over to the `src/` folder before trying to build, you can use the provided [scripts/generate.ps1](scripts/generate.ps1) powershell script
+
 ### LSP
 This language uses [rascript-language-server](https://github.com/joshraphael/rascript-language-server) to handle language hints and code tools, download the latest release and place the file somewhere you can remember on your computer (ex: `C:\Users\joshraphael\rascript-language-server_v0.0.1_win-x64.exe`)
 
