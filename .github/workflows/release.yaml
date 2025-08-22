@@ -20,21 +20,26 @@ jobs:
       uses: actions/checkout@v4
     
     - name: Setup NPP Dependencies
+      shell: bash
       run: make clean
 
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v2
 
     - name: MSBuild of plugin dll x64
+      shell: powershell
       run: msbuild RAScript.vcxproj /m /p:configuration="Release" /p:platform="x64"
     
     - name: MSBuild of plugin dll Win32
+      shell: powershell
       run: msbuild RAScript.vcxproj /m /p:configuration="Release" /p:platform="Win32"
     
     - name: MSBuild of plugin dll ARM64
+      shell: powershell
       run: msbuild RAScript.vcxproj /m /p:configuration="Release" /p:platform="ARM64"
     
     - name: Zip Release Binaries
+      shell: powershell
       run: |
         cd bin64
         Compress-Archive -Path RAScript.dll -DestinationPath npp-rascript_${{ github.ref_name }}_x64.zip

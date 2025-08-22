@@ -48,6 +48,7 @@ jobs:
         uses: microsoft/setup-msbuild@v2
 
       - name: MSBuild of plugin dll
+        shell: powershell
         run: msbuild RAScript.vcxproj /m /p:configuration="${{ matrix.build_configuration }}" /p:platform="${{ matrix.build_platform }}"
 
       - name: Archive artifacts for x64
