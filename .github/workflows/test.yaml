@@ -39,6 +39,10 @@ jobs:
 
       - name: Checkout repo
         uses: actions/checkout@v4
+      
+      - name: Setup NPP Dependencies
+        shell: wsl-bash {0}
+        run: sudo apt update && sudo apt install -y make build-essential
     
       - name: Setup NPP Dependencies
         shell: wsl-bash {0}
