@@ -27,6 +27,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src/notepad-plus-plus/lexilla/lexlib/DefaultLexer.cxx" />
+    <ClCompile Include="src/notepad-plus-plus/lexilla/lexlib/LexAccessor.cxx" />
+    <ClCompile Include="src/notepad-plus-plus/lexilla/lexlib/StyleContext.cxx" />
+    <ClCompile Include="src/notepad-plus-plus/lexilla/lexlib/WordList.cxx" />
+    <ClCompile Include="src/Lexer.cpp" />
     <ClCompile Include="src/RAScript.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -105,7 +110,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>src/notepad-plus-plus/PowerEditor/src;src/notepad-plus-plus/PowerEditor/src/MISC/PluginsManager;src\notepad-plus-plus\scintilla\include;$(IncludePath)</IncludePath>
+    <IncludePath>src/notepad-plus-plus/PowerEditor/src;src/notepad-plus-plus/PowerEditor/src/MISC/PluginsManager;src\notepad-plus-plus\scintilla\include;src/notepad-plus-plus/lexilla/include;src/notepad-plus-plus/lexilla/lexlib;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <LinkIncremental>true</LinkIncremental>
