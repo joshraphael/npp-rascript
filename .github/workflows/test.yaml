@@ -34,6 +34,9 @@ jobs:
         build_platform: [x64, Win32, ARM64]
 
     steps:
+      - name: Install Cygwin
+        uses: cygwin/cygwin-install-action@master
+
       - name: Checkout repo
         uses: actions/checkout@v4
     
