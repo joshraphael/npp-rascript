@@ -11,4 +11,5 @@ if(($Env:GITHUB_REF_TYPE -eq "tag") -and ($Env:GITHUB_REF_NAME -ne "") -and ($En
     $patch = $values[2]
 }
 
+Remove-Item -Path "src\RAScript.rc" -Force -ErrorAction SilentlyContinue
 get-content templates/RAScript.rc.template | %{$_ -replace "\$\{VERSION_MAJOR\}", $major} | %{$_ -replace "\$\{VERSION_MINOR\}", $minor} | %{$_ -replace "\$\{VERSION_PATCH\}", $patch} | Out-File src/RAScript.rc

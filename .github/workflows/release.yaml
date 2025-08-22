@@ -22,7 +22,6 @@ jobs:
     
     - name: Setup NPP Dependencies
       run: |
-        Remove-Item -Path "src\RAScript.rc" -Force -ErrorAction SilentlyContinue
         .\scripts\generate.ps1
         make clean
 
