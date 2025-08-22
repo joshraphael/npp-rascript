@@ -13,14 +13,14 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - name: Install Cygwin
-      uses: cygwin/cygwin-install-action@master
+    - name: Setup WSL with dependencies
+      uses: Vampire/setup-wsl@v6
 
     - name: Checkout repo
       uses: actions/checkout@v4
     
     - name: Setup NPP Dependencies
-      shell: bash
+      shell: wsl-bash {0}
       run: make clean
 
     - name: Add msbuild to PATH
