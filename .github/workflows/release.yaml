@@ -21,7 +21,10 @@ jobs:
       run: sudo apt update && sudo apt upgrade -y && sudo apt install -y make build-essential
     
     - name: Setup NPP Dependencies
-      run: make generate-win && make clean
+      run: |
+        rm -f src\RAScript.rc
+        .\scripts\generate.ps1
+        make clean
 
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v2

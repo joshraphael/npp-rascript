@@ -8,10 +8,6 @@ generate:
 	rm -f src/RAScript.rc
 	./scripts/generate.sh
 
-generate-win:
-	rm -f src\RAScript.rc
-	.\scripts\generate.ps1
-
 clean: # works on windows and linux, careful changing this
 	rm -rf out
 	mkdir -p out
