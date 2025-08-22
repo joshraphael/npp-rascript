@@ -5,7 +5,7 @@ export VERSION_MAJOR="0"
 export VERSION_MINOR="0"
 export VERSION_PATCH="0"
 
-if [[ ${GITHUB_REF_NAME} != "" ]]; then
+if [[ ${GITHUB_REF_TYPE} == "tag" && ${GITHUB_REF_NAME} != "" ]]; then
     VERSION="${GITHUB_REF_NAME#v}"
     VERSION_MAJOR=$(echo "$VERSION" | cut -d'.' -f1)
     VERSION_MINOR=$(echo "$VERSION" | cut -d'.' -f2)
