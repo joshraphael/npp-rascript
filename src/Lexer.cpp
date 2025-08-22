@@ -65,11 +65,11 @@ Document getDocumentText()
     ::SendMessage(curScintilla, SCI_GETTEXT, nLen + 1, (LPARAM)buffer);
     d.len = nLen;
     d.text = buffer;
-    delete buffer;
+    delete[] buffer;
     return d;
 }
 
-void SCI_METHOD LexerTemplate::Lex(Sci_PositionU startPos, Sci_Position lengthDoc, int initStyle, Scintilla::IDocument *pAccess)
+void SCI_METHOD LexerTemplate::Lex(Sci_PositionU startPos, Sci_Position lengthDoc, int /* initStyle */, Scintilla::IDocument *pAccess)
 {
     LexAccessor styler(pAccess);
 
