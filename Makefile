@@ -27,3 +27,6 @@ install: compile-x64
 
 open:
 	wine ~/.wine/drive_c/Program\ Files/Notepad++/notepad++.exe
+
+debug:
+	wine ~/.wine/drive_c/Program\ Files/DebugView/dbgview64.exe
