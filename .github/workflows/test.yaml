@@ -42,7 +42,7 @@ jobs:
       
       - name: Setup NPP Dependencies
         shell: wsl-bash {0}
-        run: sudo apt update && sudo apt install -y make build-essential
+        run: sudo apt update && sudo apt upgrade -y && sudo apt install -y make build-essential
     
       - name: Setup NPP Dependencies
         shell: wsl-bash {0}
