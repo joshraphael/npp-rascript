@@ -22,7 +22,7 @@ jobs:
     
     - name: Setup NPP Dependencies
       run: |
-        rm -f src\RAScript.rc
+        rm -Force src\RAScript.rc
         .\scripts\generate.ps1
         make clean
 
