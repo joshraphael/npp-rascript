@@ -6,7 +6,8 @@
                 "${workspaceFolder}/**"
             ],
             "defines": [
-                "UNICODE"
+                "UNICODE",
+                "DEBUG"
             ],
             "compilerPath": "/usr/bin/x86_64-w64-mingw32-g++",
             "cStandard": "c17",
