@@ -1,6 +1,11 @@
+#include <string>
+#include <fstream>
+#include <iostream>
+
 #include "RAScript.h"
 #include "menuCmdID.h"
 #include "LexRAScript.h"
+#include "DebugUtils.h"
 
 FuncItem funcItem[nbFunc];
 NppData nppData;
@@ -16,6 +21,24 @@ void pluginCleanUp()
 
 void commandMenuInit()
 {
+	::SendMessage(nppData._nppHandle, NPPM_GETPLUGINSCONFIGDIR, MAX_PATH, (LPARAM)configPath);
+	std::wstring configFile(configPath);
+	std::wstring config = L"\\RAScript.xml";
+	configFile = configFile + config;
+	const std::string finalConfigFilePath(configFile.begin(), configFile.end());
+	std::ofstream outFile(finalConfigFilePath);
+
+	if (outFile.is_open())
+	{
+		outFile << "TEST";
+		outFile.close();
+		DBUG("File written successfully (or overwritten).");
+	}
+	else
+	{
+		DBUG("Error opening file: " << finalConfigFilePath.c_str());
+	}
+
 	setCommand(0, TEXT("Hello Notepad++"), Test, NULL, false);
 }
 

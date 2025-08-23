@@ -2,10 +2,9 @@
 #include <windows.h>
 #include <string>
 #include <string_view>
-#include <iostream>
-#include <sstream>
 #include <assert.h>
 
+#include "DebugUtils.h"
 #include "LexRAScript.h"
 
 #include "PluginInterface.h"
@@ -14,15 +13,6 @@
 
 extern NppData nppData;
 const int RASCRIPT_STYLE_DEFAULT = 0;
-
-#ifdef DEBUG
-#define DBUG(msg)            \
-    std::wostringstream os_; \
-    os_ << msg;              \
-    OutputDebugStringW(os_.str().c_str());
-#else
-#define DBUG(msg)
-#endif
 
 Scintilla::ILexer5 *LexRAScript::LexerFactory()
 {
