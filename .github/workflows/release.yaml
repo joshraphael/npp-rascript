@@ -18,9 +18,7 @@ jobs:
       uses: actions/checkout@v4
     
     - name: Setup NPP Dependencies
-      run: |
-        make clean
-        make generate-win
+      run: make generate-win
 
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v2

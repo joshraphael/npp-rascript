@@ -8,7 +8,7 @@ generate: clean
 	./scripts/generate.sh
 
 generate-win: clean
-	.\scripts\generate.ps1
+	pwsh.exe .\scripts\generate.ps1
 
 clean: # works on windows and linux, careful changing this
 	rm -rf out
