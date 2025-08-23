@@ -37,7 +37,7 @@ void commandMenuInit()
 	}
 	else
 	{
-		DBUG("Error opening file: " << finalConfigFilePath.c_str());
+		DBUG("Error opening file: " + finalConfigFilePath);
 	}
 
 	setCommand(0, TEXT("Hello Notepad++"), Test, NULL, false);
@@ -122,8 +122,19 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 	case NPPN_SHUTDOWN:
 	{
 		commandMenuCleanUp();
+		break;
 	}
-	break;
+	case NPPN_DARKMODECHANGED:
+	{
+		DBUG("DARK MODE CHANGED");
+		int which = -1;
+		::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
+		if (which != -1)
+		{
+			HWND curScintilla = (which == 0) ? nppData._scintillaMainHandle : nppData._scintillaSecondHandle;
+			::SendMessage(curScintilla, SCI_COLOURISE, 0, -1); // restyle entire document
+		}
+	}
 
 	default:
 		return;

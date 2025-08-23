@@ -27,6 +27,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src/DebugUtils.cpp" />
     <ClCompile Include="src/notepad-plus-plus/lexilla/lexlib/DefaultLexer.cxx" />
     <ClCompile Include="src/notepad-plus-plus/lexilla/lexlib/LexAccessor.cxx" />
     <ClCompile Include="src/notepad-plus-plus/lexilla/lexlib/StyleContext.cxx" />

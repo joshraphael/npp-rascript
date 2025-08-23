@@ -65,6 +65,8 @@ void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc,
 
     StyleContext sc(startPos, lengthDoc, RASCRIPT_STYLE_DEFAULT, styler);
 
+    DBUG("Here");
+
     for (;; sc.Forward())
     {
         if (!sc.More())
@@ -73,7 +75,7 @@ void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc,
         }
     }
     Document d = getDocumentText();
-    DBUG("Last Letter Typed: " << d.text[d.len - 1] << "\n");
+    DBUG("Last Letter Typed: " + d.text[d.len - 1]);
     sc.Complete();
 }
 

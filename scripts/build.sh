@@ -4,6 +4,10 @@ if [ -z "${ARCH}" ]; then echo "empty architecture for build"; exit 1; fi;
 
 if [[ ${ARCH} != @(${ARCH}|i686) ]]; then echo "invalid architecture selected to build: ${chapter}"; exit 1; fi;
 
+# DebugUtils
+${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE -DDEBUG \
+-c src/DebugUtils.cpp -o out/DebugUtils.o
+
 # DefaultLexer
 ${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE -DDEBUG \
 -Isrc/notepad-plus-plus/scintilla/include \
@@ -49,6 +53,7 @@ ${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE -DDEBUG \
 
 # Link
 ${ARCH}-w64-mingw32-g++ -static-libstdc++ -static-libgcc -shared -o out/RAScript.dll \
+out/DebugUtils.o \
 out/DefaultLexer.o \
 out/LexAccessor.o \
 out/StyleContext.o \
