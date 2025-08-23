@@ -1,4 +1,4 @@
-SHELL := /bin/bash
+# SHELL := /bin/bash
 NPP_VERSION := v8.8.5
 RASCRIPT_SYNTAX_VERSION := v0.0.3
 
@@ -7,7 +7,10 @@ deps:
 
 generate: clean
 	rm -f src/RAScript.rc
-	./scripts/generate.sh
+	export RASCRIPT_SYNTAX_VERSION=${RASCRIPT_SYNTAX_VERSION} && ./scripts/generate.sh
+
+generate-win: clean
+	$Env:RASCRIPT_SYNTAX_VERSION = ${RASCRIPT_SYNTAX_VERSION}; .\scripts\generate.ps1
 
 clean: # works on windows and linux, careful changing this
 	rm -rf out
@@ -15,7 +18,6 @@ clean: # works on windows and linux, careful changing this
 	rm -rf src/notepad-plus-plus
 	rm -rf temp/
 	mkdir -p temp/
-	wget -O temp/rascript.tmLanguage 'https://github.com/joshraphael/rascript-syntax/releases/download/${RASCRIPT_SYNTAX_VERSION}/rascript.tmLanguage'
 	git submodule update --init --recursive
 	cd src/notepad-plus-plus && git checkout tags/${NPP_VERSION}
 

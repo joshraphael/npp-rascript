@@ -4,6 +4,8 @@ export VERSION="$(git describe --always --dirty)"
 export VERSION_MAJOR="0"
 export VERSION_MINOR="0"
 export VERSION_PATCH="0"
+export SYNTAX_URL="https://github.com/joshraphael/rascript-syntax/releases/download/${RASCRIPT_SYNTAX_VERSION}/rascript.tmLanguage"
+wget -O temp/rascript.tmLanguage ${SYNTAX_URL}
 export RASCRIPT_NPP_SYNTAX=$(cat temp/rascript.tmLanguage)
 
 if [[ ${GITHUB_REF_TYPE} == "tag" && ${GITHUB_REF_NAME} != "" ]]; then

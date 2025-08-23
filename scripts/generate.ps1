@@ -2,6 +2,8 @@ $version = git describe --always --dirty
 $major = "0"
 $minor = "0"
 $patch = "0"
+$syntaxUrl = "https://github.com/joshraphael/rascript-syntax/releases/download/$Env:RASCRIPT_SYNTAX_VERSION/rascript.tmLanguage"
+Invoke-WebRequest -Uri $syntaxUrl -OutFile "temp\rascript.tmLanguage"
 $rascriptNppSyntax = Get-Content -Path "temp\rascript.tmLanguage" -Raw
 
 if(($Env:GITHUB_REF_TYPE -eq "tag") -and ($Env:GITHUB_REF_NAME -ne "") -and ($Env:GITHUB_REF_NAME.StartsWith("v"))) {
