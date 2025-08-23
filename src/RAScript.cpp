@@ -1,6 +1,12 @@
+#include <string>
+#include <fstream>
+#include <iostream>
+
+#include "Config.h"
 #include "RAScript.h"
 #include "menuCmdID.h"
-#include "Lexer.h"
+#include "LexRAScript.h"
+#include "DebugUtils.h"
 
 FuncItem funcItem[nbFunc];
 NppData nppData;
@@ -16,6 +22,24 @@ void pluginCleanUp()
 
 void commandMenuInit()
 {
+	::SendMessage(nppData._nppHandle, NPPM_GETPLUGINSCONFIGDIR, MAX_PATH, (LPARAM)configPath);
+	std::wstring configFile(configPath);
+	std::wstring config = L"\\RAScript.xml";
+	configFile = configFile + config;
+	const std::string finalConfigFilePath(configFile.begin(), configFile.end());
+	std::ofstream outFile(finalConfigFilePath);
+
+	if (outFile.is_open())
+	{
+		outFile << config_contents;
+		outFile.close();
+		DBUG("File written successfully (or overwritten).");
+	}
+	else
+	{
+		DBUG("Error opening file: " + finalConfigFilePath);
+	}
+
 	setCommand(0, TEXT("Hello Notepad++"), Test, NULL, false);
 }
 
@@ -98,8 +122,19 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 	case NPPN_SHUTDOWN:
 	{
 		commandMenuCleanUp();
+		break;
 	}
-	break;
+	case NPPN_DARKMODECHANGED:
+	{
+		DBUG("DARK MODE CHANGED");
+		int which = -1;
+		::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
+		if (which != -1)
+		{
+			HWND curScintilla = (which == 0) ? nppData._scintillaMainHandle : nppData._scintillaSecondHandle;
+			::SendMessage(curScintilla, SCI_COLOURISE, 0, -1); // restyle entire document
+		}
+	}
 
 	default:
 		return;

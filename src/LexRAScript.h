@@ -1,7 +1,5 @@
-#pragma once
-
-#ifndef LEXER_H
-#define LEXER_H
+#ifndef LEXRASCRIPT_H
+#define LEXRASCRIPT_H
 
 #include "ILexer.h"
 #include "LexerModule.h"
@@ -10,14 +8,14 @@
 
 using namespace Lexilla;
 
-class LexerTemplate : public DefaultLexer
+class LexRAScript : public DefaultLexer
 {
 
 public:
-    LexerTemplate() : DefaultLexer("LexerTemplate", SCLEX_AUTOMATIC)
+    LexRAScript() : DefaultLexer("RAScript", SCLEX_AUTOMATIC)
     {
     }
-    virtual ~LexerTemplate() {}
+    virtual ~LexRAScript() {}
 
     static ILexer5 *LexerFactory();
 
@@ -27,4 +25,4 @@ public:
     void SCI_METHOD Lex(Sci_PositionU startPos, Sci_Position lengthDoc, int initStyle, Scintilla::IDocument *pAccess);
 };
 
-#endif
+#endif // LEXRASCRIPT_H

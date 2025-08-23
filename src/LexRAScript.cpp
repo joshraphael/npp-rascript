@@ -2,11 +2,10 @@
 #include <windows.h>
 #include <string>
 #include <string_view>
-#include <iostream>
-#include <sstream>
 #include <assert.h>
 
-#include "Lexer.h"
+#include "DebugUtils.h"
+#include "LexRAScript.h"
 
 #include "PluginInterface.h"
 #include "LexAccessor.h"
@@ -15,31 +14,22 @@
 extern NppData nppData;
 const int RASCRIPT_STYLE_DEFAULT = 0;
 
-#ifdef DEBUG
-#define DBUG(msg)            \
-    std::wostringstream os_; \
-    os_ << msg;              \
-    OutputDebugStringW(os_.str().c_str());
-#else
-#define DBUG(msg)
-#endif
-
-Scintilla::ILexer5 *LexerTemplate::LexerFactory()
+Scintilla::ILexer5 *LexRAScript::LexerFactory()
 {
-    return new LexerTemplate();
+    return new LexRAScript();
 }
 
 LexerFactoryFunction GetLexerFactoryByIndex(int index)
 {
-    return (index == 0) ? LexerTemplate::LexerFactory : nullptr;
+    return (index == 0) ? LexRAScript::LexerFactory : nullptr;
 }
 
-void SCI_METHOD LexerTemplate::Release()
+void SCI_METHOD LexRAScript::Release()
 {
     delete this;
 }
 
-int SCI_METHOD LexerTemplate::Version() const
+int SCI_METHOD LexRAScript::Version() const
 {
     return Scintilla::lvRelease5;
 }
@@ -69,11 +59,13 @@ Document getDocumentText()
     return d;
 }
 
-void SCI_METHOD LexerTemplate::Lex(Sci_PositionU startPos, Sci_Position lengthDoc, int /* initStyle */, Scintilla::IDocument *pAccess)
+void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc, int /* initStyle */, Scintilla::IDocument *pAccess)
 {
     LexAccessor styler(pAccess);
 
     StyleContext sc(startPos, lengthDoc, RASCRIPT_STYLE_DEFAULT, styler);
+
+    DBUG("Here");
 
     for (;; sc.Forward())
     {
@@ -83,7 +75,7 @@ void SCI_METHOD LexerTemplate::Lex(Sci_PositionU startPos, Sci_Position lengthDo
         }
     }
     Document d = getDocumentText();
-    DBUG("Last Letter Typed: " << d.text[d.len - 1] << "\n");
+    DBUG("Last Letter Typed: " + d.text[d.len - 1]);
     sc.Complete();
 }
 
@@ -119,5 +111,5 @@ extern "C" __declspec(dllexport) inline LexerFactoryFunction __stdcall GetLexerF
 
 extern "C" __declspec(dllexport) inline void *__stdcall CreateLexer(const char * /* name */)
 {
-    return LexerTemplate::LexerFactory();
+    return LexRAScript::LexerFactory();
 }

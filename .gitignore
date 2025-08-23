@@ -27,3 +27,5 @@ out/
 .vscode/settings.json
 *.vcxproj.user
 src/RAScript.rc
+src/Config.h
+temp/
