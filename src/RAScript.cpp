@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 
+#include "Config.h"
 #include "RAScript.h"
 #include "menuCmdID.h"
 #include "LexRAScript.h"
@@ -30,7 +31,7 @@ void commandMenuInit()
 
 	if (outFile.is_open())
 	{
-		outFile << "TEST";
+		outFile << config_contents;
 		outFile.close();
 		DBUG("File written successfully (or overwritten).");
 	}

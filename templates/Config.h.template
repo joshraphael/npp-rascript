@@ -1,0 +1,10 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+#include <string>
+
+std::string config_contents = R"<NPP_RASCRIPT>(
+${RASCRIPT_NPP_SYNTAX}
+)<NPP_RASCRIPT>";
+
+#endif // CONFIG_H

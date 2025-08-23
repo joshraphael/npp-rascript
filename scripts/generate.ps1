@@ -2,6 +2,7 @@ $version = git describe --always --dirty
 $major = "0"
 $minor = "0"
 $patch = "0"
+$rascriptNppSyntax = Get-Content -Path "temp\rascript.tmLanguage" -Raw
 
 if(($Env:GITHUB_REF_TYPE -eq "tag") -and ($Env:GITHUB_REF_NAME -ne "") -and ($Env:GITHUB_REF_NAME.StartsWith("v"))) {
     $version = $Env:GITHUB_REF_NAME.Substring(1) # remove the leading v
@@ -13,3 +14,4 @@ if(($Env:GITHUB_REF_TYPE -eq "tag") -and ($Env:GITHUB_REF_NAME -ne "") -and ($En
 
 Remove-Item -Path "src\RAScript.rc" -Force -ErrorAction SilentlyContinue
 get-content templates/RAScript.rc.template | %{$_ -replace "\$\{VERSION_MAJOR\}", $major} | %{$_ -replace "\$\{VERSION_MINOR\}", $minor} | %{$_ -replace "\$\{VERSION_PATCH\}", $patch} | Out-File src/RAScript.rc
+get-content templates/Config.h.template | %{$_ -replace "\$\{RASCRIPT_NPP_SYNTAX\}", $rascriptNppSyntax} | Out-File src/Config.h
