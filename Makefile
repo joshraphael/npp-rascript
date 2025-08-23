@@ -1,16 +1,16 @@
 # SHELL := /bin/bash
-NPP_VERSION := v8.8.5
-RASCRIPT_SYNTAX_VERSION := v0.0.3
+export NPP_VERSION := v8.8.5
+export RASCRIPT_SYNTAX_VERSION := v0.0.3
 
 deps:
 	sudo apt-get install gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64 gcc-mingw-w64-i686 g++-mingw-w64-i686
 
 generate: clean
 	rm -f src/RAScript.rc
-	export RASCRIPT_SYNTAX_VERSION=${RASCRIPT_SYNTAX_VERSION} && ./scripts/generate.sh
+	./scripts/generate.sh
 
 generate-win: clean
-	$Env:RASCRIPT_SYNTAX_VERSION = ${RASCRIPT_SYNTAX_VERSION}; .\scripts\generate.ps1
+	.\scripts\generate.ps1
 
 clean: # works on windows and linux, careful changing this
 	rm -rf out
