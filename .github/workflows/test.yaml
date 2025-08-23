@@ -40,8 +40,8 @@ jobs:
 
       - name: Setup NPP Dependencies
         run: |
-          .\scripts\generate.ps1
           make clean
+          .\scripts\generate.ps1
 
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
