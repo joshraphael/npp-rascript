@@ -27,13 +27,13 @@ ${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE -DDEBUG \
 -Isrc/notepad-plus-plus/lexilla/lexlib \
 -c src/notepad-plus-plus/lexilla/lexlib/WordList.cxx -o out/WordList.o
 
-# Lexer
+# LexRAScript
 ${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE -DDEBUG \
 -Isrc/notepad-plus-plus/scintilla/include \
 -Isrc/notepad-plus-plus/lexilla/lexlib \
 -Isrc/notepad-plus-plus/lexilla/include \
 -Isrc/notepad-plus-plus/PowerEditor/src/MISC/PluginsManager \
--c src/Lexer.cpp -o out/Lexer.o
+-c src/LexRAScript.cpp -o out/LexRAScript.o
 
 # Resource File
 ${ARCH}-w64-mingw32-windres src/RAScript.rc -o out/rc.o
@@ -53,7 +53,7 @@ out/DefaultLexer.o \
 out/LexAccessor.o \
 out/StyleContext.o \
 out/WordList.o \
-out/Lexer.o \
+out/LexRAScript.o \
 out/rc.o \
 out/RAScript.o \
 -Wl,--out-implib=out/RAScript.dll.a

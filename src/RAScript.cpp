@@ -1,6 +1,6 @@
 #include "RAScript.h"
 #include "menuCmdID.h"
-#include "Lexer.h"
+#include "LexRAScript.h"
 
 FuncItem funcItem[nbFunc];
 NppData nppData;

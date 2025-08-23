@@ -31,7 +31,7 @@
     <ClCompile Include="src/notepad-plus-plus/lexilla/lexlib/LexAccessor.cxx" />
     <ClCompile Include="src/notepad-plus-plus/lexilla/lexlib/StyleContext.cxx" />
     <ClCompile Include="src/notepad-plus-plus/lexilla/lexlib/WordList.cxx" />
-    <ClCompile Include="src/Lexer.cpp" />
+    <ClCompile Include="src/LexRAScript.cpp" />
     <ClCompile Include="src/RAScript.cpp" />
   </ItemGroup>
   <ItemGroup>
