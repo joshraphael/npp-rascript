@@ -3,11 +3,13 @@
 
 #include "DebugUtils.h"
 
+#ifdef DEBUG
 void DBUG(std::string outputString)
 {
-#ifdef DEBUG
     std::wostringstream output;
     output << outputString.c_str();
     OutputDebugStringW(output.str().c_str());
-#endif
 }
+#else
+void DBUG(std::string) {}
+#endif

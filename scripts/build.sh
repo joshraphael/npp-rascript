@@ -4,35 +4,41 @@ if [ -z "${ARCH}" ]; then echo "empty architecture for build"; exit 1; fi;
 
 if [[ ${ARCH} != @(${ARCH}|i686) ]]; then echo "invalid architecture selected to build: ${chapter}"; exit 1; fi;
 
+ENABLE_DEBUG=true
+DBUG=""
+if ${ENABLE_DEBUG}; then
+    DBUG=-DDEBUG
+fi;
+
 # DebugUtils
-${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE -DDEBUG \
+${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE ${DBUG} \
 -c src/DebugUtils.cpp -o out/DebugUtils.o
 
 # DefaultLexer
-${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE -DDEBUG \
+${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE ${DBUG} \
 -Isrc/notepad-plus-plus/scintilla/include \
 -Isrc/notepad-plus-plus/lexilla/include \
 -c src/notepad-plus-plus/lexilla/lexlib/DefaultLexer.cxx -o out/DefaultLexer.o
 
 # LexAccessor
-${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE -DDEBUG \
+${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE ${DBUG} \
 -Isrc/notepad-plus-plus/scintilla/include \
 -Isrc/notepad-plus-plus/lexilla/lexlib \
 -c src/notepad-plus-plus/lexilla/lexlib/LexAccessor.cxx -o out/LexAccessor.o
 
 # StyleContext
-${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE -DDEBUG \
+${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE ${DBUG} \
 -Isrc/notepad-plus-plus/scintilla/include \
 -Isrc/notepad-plus-plus/lexilla/lexlib \
 -c src/notepad-plus-plus/lexilla/lexlib/StyleContext.cxx -o out/StyleContext.o
 
 # WordList
-${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE -DDEBUG \
+${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE ${DBUG} \
 -Isrc/notepad-plus-plus/lexilla/lexlib \
 -c src/notepad-plus-plus/lexilla/lexlib/WordList.cxx -o out/WordList.o
 
 # LexRAScript
-${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE -DDEBUG \
+${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE ${DBUG} \
 -Isrc/notepad-plus-plus/scintilla/include \
 -Isrc/notepad-plus-plus/lexilla/lexlib \
 -Isrc/notepad-plus-plus/lexilla/include \
@@ -43,7 +49,7 @@ ${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE -DDEBUG \
 ${ARCH}-w64-mingw32-windres src/RAScript.rc -o out/rc.o
 
 # RAScript
-${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE -DDEBUG \
+${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE ${DBUG} \
 -Isrc/notepad-plus-plus/PowerEditor/src \
 -Isrc/notepad-plus-plus/PowerEditor/src/MISC/PluginsManager \
 -Isrc/notepad-plus-plus/scintilla/include \
