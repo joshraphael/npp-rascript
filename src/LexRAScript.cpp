@@ -10,6 +10,7 @@
 #include "PluginInterface.h"
 #include "LexAccessor.h"
 #include "StyleContext.h"
+#include "Parser.h"
 
 extern NppData nppData;
 const int RASCRIPT_STYLE_DEFAULT = 0;
@@ -66,6 +67,8 @@ void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc,
     StyleContext sc(startPos, lengthDoc, RASCRIPT_STYLE_DEFAULT, styler);
 
     DBUG("Here");
+
+    ParseFile();
 
     for (;; sc.Forward())
     {
