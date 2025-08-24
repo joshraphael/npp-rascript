@@ -10,9 +10,9 @@ Notepad++ plugin to define RAScript grammar
 
 ## Setup
 
-This plugin pulls the raw source code from [notepad-plus-plus](https://github.com/notepad-plus-plus/notepad-plus-plus) using git submodules. You can use the pre defined make commands to build the DLL of the plugin and move it to your plugins folder. A provided [RAScript.vcxproj](RAScript.vcxproj) file is also included for those that use Windows to build this module.
+This plugin pulls the raw source code from [notepad-plus-plus](https://github.com/notepad-plus-plus/notepad-plus-plus) using git submodules. You can use the pre-defined make commands to build the DLL of the plugin and move it to your plugins folder. A provided [RAScript.vcxproj](RAScript.vcxproj) file is also included for those that use Windows to build this module.
 
-**Note:** If building on Windows, be sure to generate the [RAScript.rc file located in the templates folder](templates/RAScript.rc.template) over to the `src/` folder before trying to build, you can use the provided [scripts/generate.ps1](scripts/generate.ps1) powershell script
+**Note:** If building on Windows, be sure to generate the [files located in the templates folder](templates/) over to the `src/` folder before trying to build, you can use the provided [scripts/generate.ps1](scripts/generate.ps1) powershell script
 
 ## Debugging
 
@@ -21,7 +21,7 @@ The plugin has printing enabled when compiled in debug mode, use the `-DDEBUG` f
 ### LSP
 This language uses [rascript-language-server](https://github.com/joshraphael/rascript-language-server) to handle language hints and code tools, download the latest release and place the file somewhere you can remember on your computer (ex: `C:\Users\joshraphael\rascript-language-server_v0.0.1_win-x64.exe`)
 
-install the [NppLspClient](https://github.com/Ekopalypse/NppLspClient) plugin for and place it in your plagins folder. When starting up Notepad++ after installation go to `Plugins > NppLspClient > Open configuration file` and paste in the following configuration for RAScript
+Install the [NppLspClient](https://github.com/Ekopalypse/NppLspClient) plugin and place it in your plugins folder. When starting up Notepad++ after installation go to `Plugins > NppLspClient > Open configuration file` and paste in the following configuration for RAScript
 
 ```toml
 [lspservers."rascript"]
@@ -41,3 +41,5 @@ Save and restart your editor and your RAScripts should start getting code tools.
 | Linux Dependencies       | `make deps`          | None       | Download the Linux binaries to build a Windows C++ DLL |
 | Start Debug Print Window | `make debug`         | None       | Start DebugView to view logs (under wine defaults)     |
 | Install                  | `make install`       | None       | Install the extension locally (under wine defaults)    |
+| Generate Linux files     | `make generate`      | None       | Generate files based on Linux OS                       |
+| Generate Windows files   | `make generate-win`  | None       | Generate files based on Windows OS                     |
