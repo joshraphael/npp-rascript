@@ -14,6 +14,12 @@
         OutputDebugStringW(os_.str().c_str()); \
     }
 #endif // DBUG
+#else
+#ifndef DBUG
+#define DBUG(s) \
+    {           \
+    }
+#endif // DBUG
 #endif // DEBUG
 
 #endif // DEBUGUTILS_H
