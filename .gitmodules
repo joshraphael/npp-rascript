@@ -1,3 +1,6 @@
 [submodule "src/notepad-plus-plus"]
 	path = src/notepad-plus-plus
 	url = https://github.com/notepad-plus-plus/notepad-plus-plus.git
+[submodule "src/tinyxml2"]
+	path = src/tinyxml2
+	url = https://github.com/leethomason/tinyxml2.git

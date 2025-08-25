@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 
+#include "tinyxml2.h"
 #include "Config.h"
 #include "RAScript.h"
 #include "menuCmdID.h"
@@ -37,8 +38,11 @@ void commandMenuInit()
 	}
 	else
 	{
-		DBUG("Error opening file: " + finalConfigFilePath);
+		DBUG("Error opening file: " << finalConfigFilePath.c_str());
 	}
+
+	tinyxml2::XMLDocument doc;
+	doc.LoadFile(finalConfigFilePath.c_str());
 
 	setCommand(0, TEXT("Hello Notepad++"), Test, NULL, false);
 }

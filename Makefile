@@ -1,4 +1,5 @@
 export NPP_VERSION := v8.8.5
+export TINYXML2_VERSION := 11.0.0
 export RASCRIPT_SYNTAX_VERSION := v0.0.3
 
 deps:
@@ -14,12 +15,14 @@ clean: # works on windows and linux, careful changing this
 	rm -rf out
 	mkdir -p out
 	rm -rf src/notepad-plus-plus
+	rm -rf src/tinyxml2
 	rm -rf temp/
 	mkdir -p temp/
 	rm -f src/RAScript.rc
 	rm -f src/Config.h
 	git submodule update --init --recursive
 	cd src/notepad-plus-plus && git checkout tags/${NPP_VERSION}
+	cd src/tinyxml2 && git checkout tags/${TINYXML2_VERSION}
 
 compile-x64: generate
 	ARCH=x86_64 ./scripts/build.sh
