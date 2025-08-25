@@ -10,9 +10,10 @@ if ${ENABLE_DEBUG}; then
     DBUG=-DDEBUG
 fi;
 
-# DebugUtils
+# TinyXML2
 ${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE ${DBUG} \
--c src/DebugUtils.cpp -o out/DebugUtils.o
+-Isrc/tinyxml2 \
+-c src/tinyxml2/tinyxml2.cpp -o out/tinyxml2.o
 
 # DefaultLexer
 ${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE ${DBUG} \
@@ -56,6 +57,7 @@ ${ARCH}-w64-mingw32-windres src/RAScript.rc -o out/rc.o
 
 # RAScript
 ${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE ${DBUG} \
+-Isrc/tinyxml2 \
 -Isrc/notepad-plus-plus/PowerEditor/src \
 -Isrc/notepad-plus-plus/PowerEditor/src/MISC/PluginsManager \
 -Isrc/notepad-plus-plus/scintilla/include \
@@ -65,7 +67,7 @@ ${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE ${DBUG} \
 
 # Link
 ${ARCH}-w64-mingw32-g++ -static-libstdc++ -static-libgcc -shared -o out/RAScript.dll \
-out/DebugUtils.o \
+out/tinyxml2.o \
 out/DefaultLexer.o \
 out/LexAccessor.o \
 out/StyleContext.o \
