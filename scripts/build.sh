@@ -76,4 +76,4 @@ out/Parser.o \
 out/LexRAScript.o \
 out/rc.o \
 out/RAScript.o \
--Wl,--out-implib=out/RAScript.dll.a
+-Wl,--output-def,src/Exports.def--out-implib=out/RAScript.dll.a
