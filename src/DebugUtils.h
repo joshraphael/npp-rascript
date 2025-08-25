@@ -1,6 +1,19 @@
 #ifndef DEBUGUTILS_H
 #define DEBUGUTILS_H
 
-void DBUG(std::string);
+#ifdef DEBUG
+#ifndef DBUG
+
+#include <windows.h>
+#include <sstream>
+
+#define DBUG(s)                                \
+    {                                          \
+        std::wostringstream os_;               \
+        os_ << s;                              \
+        OutputDebugStringW(os_.str().c_str()); \
+    }
+#endif // DBUG
+#endif // DEBUG
 
 #endif // DEBUGUTILS_H
