@@ -1,8 +1,9 @@
 #include <string>
 
-#include "DebugUtils.h"
 #include "PluginInterface.h"
 #include "tinyxml2.h"
+
+#include "DebugUtils.hpp"
 
 extern NppData nppData;
 

@@ -1,13 +1,14 @@
-#include <string>
 #include <fstream>
 #include <iostream>
+#include <string>
 
-#include "PluginInterface.h"
-#include "Config.h"
-#include "RAScript.h"
 #include "menuCmdID.h"
-#include "LexRAScript.h"
-#include "DebugUtils.h"
+#include "PluginInterface.h"
+
+#include "Config.hpp"
+#include "DebugUtils.hpp"
+#include "LexRAScript.hpp"
+#include "RAScript.hpp"
 
 const int nbFunc = 2;
 FuncItem funcItem[nbFunc];

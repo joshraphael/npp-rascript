@@ -4,14 +4,15 @@
 #include <string_view>
 #include <assert.h>
 
-#include "DebugUtils.h"
-#include "LexRAScript.h"
-
+#include "ILexer.h"
+#include "LexAccessor.h"
 #include "tinyxml2.h"
 #include "PluginInterface.h"
-#include "LexAccessor.h"
+
+#include "DebugUtils.hpp"
+#include "LexRAScript.hpp"
+#include "Parser.hpp"
 #include "StyleContext.h"
-#include "Parser.h"
 
 extern NppData nppData;
 

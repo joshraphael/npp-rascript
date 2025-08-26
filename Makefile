@@ -19,7 +19,7 @@ clean: # works on windows and linux, careful changing this
 	rm -rf temp/
 	mkdir -p temp/
 	rm -f src/RAScript.rc
-	rm -f src/Config.h
+	rm -f src/Config.hpp
 	git submodule update --init --recursive
 	cd src/notepad-plus-plus && git checkout tags/${NPP_VERSION}
 	cd src/tinyxml2 && git checkout tags/${TINYXML2_VERSION}

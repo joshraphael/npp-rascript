@@ -1,5 +1,5 @@
-#ifndef LEXRASCRIPT_H
-#define LEXRASCRIPT_H
+#ifndef LEXRASCRIPT_HPP
+#define LEXRASCRIPT_HPP
 
 #include "ILexer.h"
 #include "LexerModule.h"
@@ -25,4 +25,4 @@ public:
     void SCI_METHOD Lex(Sci_PositionU startPos, Sci_Position lengthDoc, int initStyle, Scintilla::IDocument *pAccess);
 };
 
-#endif // LEXRASCRIPT_H
+#endif // LEXRASCRIPT_HPP

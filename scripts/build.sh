@@ -2,7 +2,7 @@
 
 if [ -z "${ARCH}" ]; then echo "empty architecture for build"; exit 1; fi;
 
-if [[ ${ARCH} != @(${ARCH}|i686) ]]; then echo "invalid architecture selected to build: ${chapter}"; exit 1; fi;
+if [[ ${ARCH} != @(x86_64|i686) ]]; then echo "invalid architecture selected to build: ${ARCH}"; exit 1; fi;
 
 ENABLE_DEBUG=true
 DBUG=""
