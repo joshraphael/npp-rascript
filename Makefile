@@ -34,8 +34,15 @@ install: compile-x64
 	cp out/RAScript.dll ~/.wine/drive_c/Program\ Files/Notepad++/plugins/RAScript
 	make open
 
+install-Win32: compile-Win32
+	cp out/RAScript.dll ~/.wine/drive_c/Program\ Files\ \(x86\)/Notepad++/plugins/RAScript
+	make open-Win32
+
 open:
 	wine ~/.wine/drive_c/Program\ Files/Notepad++/notepad++.exe
+
+open-Win32:
+	wine ~/.wine/drive_c/Program\ Files\ \(x86\)/Notepad++/notepad++.exe
 
 debug:
 	wine ~/.wine/drive_c/Program\ Files/DebugView/dbgview64.exe
