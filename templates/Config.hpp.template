@@ -13,9 +13,8 @@ std::string config_contents = R"<NPP_RASCRIPT>(
     </Languages>
     <LexerStyles>
         <LexerType name="RAScript" desc="RAScript file" ext="" excluded="no">
-            <WordsStyle name="DEFAULT" styleID="0" fgColor="FF00FF" bgColor="FFFFFF" fontName="" fontStyle="0" fontSize="" />
-            <WordsStyle name="CHEESE" styleID="1" fgColor="00FF00" bgColor="808000" fontName="" fontStyle="1" fontSize="" keywordClass="instre1" />
-            <WordsStyle name="FROMAGE" styleID="2" fgColor="FFFF00" bgColor="008080" fontName="" fontStyle="1" fontSize="" keywordClass="substyle1">Brie</WordsStyle>
+            <WordsStyle name="DEFAULT" styleID="0" fgColor="000000" bgColor="FFFFFF" fontName="" fontStyle="0" fontSize="" />
+            <WordsStyle name="COMMENT" styleID="1" fgColor="008000" bgColor="FFFFFF" fontName="" fontStyle="1" fontSize="" keywordClass="instre1" />
         </LexerType>
     </LexerStyles>
     <RAScript>

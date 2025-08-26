@@ -62,6 +62,7 @@ Document getDocumentText()
 
 void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc, int /* initStyle */, Scintilla::IDocument *pAccess)
 {
+    // DBUG(L"Lexing!!!");
     LexAccessor styler(pAccess);
     StyleContext sc(startPos, lengthDoc, -1, styler);
     Document d = getDocumentText();
@@ -79,11 +80,17 @@ void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc,
         return;
     }
     tinyxml2::XMLElement *configNode = configDoc.RootElement()->FirstChildElement("RAScript");
+    Sci_PositionU lenDef = d.len;
 
     int *styles = ParseFile(configNode, d.len, d.text);
 
     for (;; sc.Forward())
     {
+        if (sc.currentPos < lenDef)
+        {
+            sc.ChangeState(styles[sc.currentPos]);
+        }
+        sc.SetState(0);
         if (!sc.More())
         {
             break;

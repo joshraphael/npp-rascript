@@ -13,7 +13,7 @@ struct Token
     bool initialized;
     std::string name;
     std::string type;
-    std::string style;
+    int style;
 
     // Can only have start/end or regex based on type
     std::string start;
@@ -27,21 +27,22 @@ Token getToken(tinyxml2::XMLElement *e)
     t.initialized = false;
     const char *nameAttr = e->Attribute("name");
     const char *typeAttr = e->Attribute("type");
-    if (nameAttr != NULL && typeAttr != NULL)
+    int style;
+    tinyxml2::XMLError eResult = e->QueryIntAttribute("style", &style);
+    if (nameAttr != NULL && typeAttr != NULL && eResult == tinyxml2::XML_SUCCESS)
     {
         std::string name = nameAttr;
         std::string type = typeAttr;
         if (type == "NORMAL")
         {
             const char *regexAttr = e->Attribute("regex");
-            const char *styleAttr = e->Attribute("style");
-            if (regexAttr != NULL && styleAttr != NULL)
+            if (regexAttr != NULL)
             {
                 t.initialized = true;
                 t.name = name;
                 t.type = type;
+                t.style = style;
                 t.regex = regexAttr;
-                t.style = styleAttr;
                 return t;
             }
         }
@@ -49,15 +50,14 @@ Token getToken(tinyxml2::XMLElement *e)
         {
             const char *startAttr = e->Attribute("start");
             const char *endAttr = e->Attribute("end");
-            const char *styleAttr = e->Attribute("style");
-            if (startAttr != NULL && endAttr != NULL && styleAttr != NULL)
+            if (startAttr != NULL && endAttr != NULL)
             {
                 t.initialized = true;
                 t.name = name;
                 t.type = type;
+                t.style = style;
                 t.start = startAttr;
                 t.end = endAttr;
-                t.style = styleAttr;
                 return t;
             }
         }
@@ -70,7 +70,7 @@ int *ParseFile(tinyxml2::XMLElement *config, int length, std::string text)
     int *styles = new int[length];
     for (int i = 0; i < length; i++)
     {
-        styles[i] = -1;
+        styles[i] = 0;
     }
     Token *tokens = new Token[config->ChildElementCount()];
     int len = 0;
@@ -93,7 +93,11 @@ int *ParseFile(tinyxml2::XMLElement *config, int length, std::string text)
             auto end = std::sregex_iterator();
             for (std::sregex_iterator match = begin; match != end; ++match)
             {
-                DBUG(match->position() << " : " << match->position() + match->length());
+                styles[match->position() + 1] = 1;
+                for (int j = 1; j <= match->length(); j++)
+                {
+                    styles[match->position() + j] = token.style;
+                }
             }
         }
     }
