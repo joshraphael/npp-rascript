@@ -8,7 +8,7 @@ deps:
 generate: clean
 	./scripts/generate.sh
 
-generate-win: clean
+generate-win:
 	pwsh.exe .\scripts\generate.ps1
 
 clean: # works on windows and linux, careful changing this
