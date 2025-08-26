@@ -10,6 +10,7 @@
 #include "PluginInterface.h"
 #include "LexAccessor.h"
 #include "StyleContext.h"
+#include "Parser.h"
 
 extern NppData nppData;
 const int RASCRIPT_STYLE_DEFAULT = 0;
@@ -17,11 +18,6 @@ const int RASCRIPT_STYLE_DEFAULT = 0;
 Scintilla::ILexer5 *LexRAScript::LexerFactory()
 {
     return new LexRAScript();
-}
-
-LexerFactoryFunction GetLexerFactoryByIndex(int index)
-{
-    return (index == 0) ? LexRAScript::LexerFactory : nullptr;
 }
 
 void SCI_METHOD LexRAScript::Release()
@@ -67,6 +63,8 @@ void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc,
 
     DBUG("Here");
 
+    ParseFile();
+
     for (;; sc.Forward())
     {
         if (!sc.More())
@@ -79,14 +77,12 @@ void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc,
     sc.Complete();
 }
 
-extern LexerFactoryFunction GetLexerFactoryByIndex(int index);
-
-extern "C" __declspec(dllexport) inline int __stdcall GetLexerCount()
+extern "C" __declspec(dllexport) int SCI_METHOD GetLexerCount()
 {
     return 1;
 }
 
-extern "C" __declspec(dllexport) inline void __stdcall GetLexerName(unsigned int index, char *name, int buflength)
+extern "C" __declspec(dllexport) void SCI_METHOD GetLexerName(unsigned int index, char *name, int buflength)
 {
     if (index == 0)
     {
@@ -95,7 +91,7 @@ extern "C" __declspec(dllexport) inline void __stdcall GetLexerName(unsigned int
     }
 }
 
-extern "C" __declspec(dllexport) inline void __stdcall GetLexerStatusText(unsigned int index, WCHAR *desc, int buflength)
+extern "C" __declspec(dllexport) void SCI_METHOD GetLexerStatusText(unsigned int index, WCHAR *desc, int buflength)
 {
     if (index == 0)
     {
@@ -104,12 +100,12 @@ extern "C" __declspec(dllexport) inline void __stdcall GetLexerStatusText(unsign
     }
 }
 
-extern "C" __declspec(dllexport) inline LexerFactoryFunction __stdcall GetLexerFactory(unsigned int index)
+extern "C" __declspec(dllexport) LexerFactoryFunction SCI_METHOD GetLexerFactory(unsigned int index)
 {
-    return GetLexerFactoryByIndex(index);
+    return (index == 0) ? LexRAScript::LexerFactory : nullptr;
 }
 
-extern "C" __declspec(dllexport) inline void *__stdcall CreateLexer(const char * /* name */)
+extern "C" __declspec(dllexport) Scintilla::ILexer5 *SCI_METHOD CreateLexer(const char * /* name */)
 {
     return LexRAScript::LexerFactory();
 }
