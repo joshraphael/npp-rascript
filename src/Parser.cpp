@@ -7,12 +7,76 @@
 
 extern NppData nppData;
 
-void ParseFile(tinyxml2::XMLElement *config, int *styles, std::string /* text */)
+struct Token
 {
-    styles[0] = 2;
+    bool initialized;
+    std::string name;
+    std::string type;
+    std::string style;
+
+    // Can only have start/end or regex based on type
+    std::string start;
+    std::string end;
+    std::string regex;
+};
+
+Token getToken(tinyxml2::XMLElement *e)
+{
+    Token t;
+    t.initialized = false;
+    const char *nameAttr = e->Attribute("name");
+    const char *typeAttr = e->Attribute("type");
+    if (nameAttr != NULL && typeAttr != NULL)
+    {
+        std::string name = nameAttr;
+        std::string type = typeAttr;
+        if (type == "NORMAL")
+        {
+            const char *regexAttr = e->Attribute("regex");
+            const char *styleAttr = e->Attribute("style");
+            if (regexAttr != NULL && styleAttr != NULL)
+            {
+                t.initialized = true;
+                t.name = name;
+                t.type = type;
+                t.regex = regexAttr;
+                t.style = styleAttr;
+                return t;
+            }
+        }
+        if (type == "DELIMETER")
+        {
+            const char *startAttr = e->Attribute("start");
+            const char *endAttr = e->Attribute("end");
+            const char *styleAttr = e->Attribute("style");
+            if (startAttr != NULL && endAttr != NULL && styleAttr != NULL)
+            {
+                t.initialized = true;
+                t.name = name;
+                t.type = type;
+                t.start = startAttr;
+                t.end = endAttr;
+                t.style = styleAttr;
+                return t;
+            }
+        }
+    }
+    return t;
+}
+
+void ParseFile(tinyxml2::XMLElement *config, int * /* styles */, std::string /* text */)
+{
+    // styles[0] = 2;
+    Token *tokens = new Token[config->ChildElementCount()];
+    int i = 0;
     for (tinyxml2::XMLElement *e = config->FirstChildElement("Token"); e != NULL; e = e->NextSiblingElement("Token"))
     {
-        std::string wmName = e->Attribute("name");
-        DBUG(wmName.c_str());
+        Token token = getToken(e);
+        if (token.initialized)
+        {
+            tokens[i] = token;
+            i++;
+        }
     }
+    delete[] tokens;
 }
