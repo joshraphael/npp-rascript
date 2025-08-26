@@ -77,4 +77,5 @@ out/LexRAScript.o \
 out/rc.o \
 out/RAScript.o \
 src/Exports.def \
+-Wl,--enable-stdcall-fixup \
 -Wl,--out-implib=out/RAScript.dll.a
