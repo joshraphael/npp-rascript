@@ -2,16 +2,18 @@
 #include <fstream>
 #include <iostream>
 
-#include "tinyxml2.h"
+#include "PluginInterface.h"
 #include "Config.h"
 #include "RAScript.h"
 #include "menuCmdID.h"
 #include "LexRAScript.h"
 #include "DebugUtils.h"
 
+const int nbFunc = 2;
 FuncItem funcItem[nbFunc];
 NppData nppData;
 TCHAR configPath[MAX_PATH];
+const TCHAR NPP_PLUGIN_NAME[] = TEXT("RAScript");
 
 void pluginInit(HANDLE /*hModule*/)
 {
@@ -40,9 +42,6 @@ void commandMenuInit()
 	{
 		DBUG("Error opening file: " << finalConfigFilePath.c_str());
 	}
-
-	tinyxml2::XMLDocument doc;
-	doc.LoadFile(finalConfigFilePath.c_str());
 
 	setCommand(0, TEXT("Hello Notepad++"), Test, NULL, false);
 }

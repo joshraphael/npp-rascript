@@ -19,6 +19,9 @@ std::string config_contents = R"<NPP_RASCRIPT>(
         </LexerType>
     </LexerStyles>
     <RAScript>
+        <Token name="test1" />
+        <Token name="test2" />
+        <Token name="test3" />
     </RAScript>
 </NotepadPlus>
 )<NPP_RASCRIPT>";

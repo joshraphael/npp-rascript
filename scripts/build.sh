@@ -40,12 +40,14 @@ ${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE ${DBUG} \
 
 # Parser
 ${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE ${DBUG} \
+-Isrc/tinyxml2 \
 -Isrc/notepad-plus-plus/scintilla/include \
 -Isrc/notepad-plus-plus/PowerEditor/src/MISC/PluginsManager \
 -c src/Parser.cpp -o out/Parser.o
 
 # LexRAScript
 ${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE ${DBUG} \
+-Isrc/tinyxml2 \
 -Isrc/notepad-plus-plus/scintilla/include \
 -Isrc/notepad-plus-plus/lexilla/lexlib \
 -Isrc/notepad-plus-plus/lexilla/include \
@@ -57,7 +59,6 @@ ${ARCH}-w64-mingw32-windres src/RAScript.rc -o out/rc.o
 
 # RAScript
 ${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE ${DBUG} \
--Isrc/tinyxml2 \
 -Isrc/notepad-plus-plus/PowerEditor/src \
 -Isrc/notepad-plus-plus/PowerEditor/src/MISC/PluginsManager \
 -Isrc/notepad-plus-plus/scintilla/include \

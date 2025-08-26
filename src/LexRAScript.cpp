@@ -7,13 +7,13 @@
 #include "DebugUtils.h"
 #include "LexRAScript.h"
 
+#include "tinyxml2.h"
 #include "PluginInterface.h"
 #include "LexAccessor.h"
 #include "StyleContext.h"
 #include "Parser.h"
 
 extern NppData nppData;
-const int RASCRIPT_STYLE_DEFAULT = 0;
 
 Scintilla::ILexer5 *LexRAScript::LexerFactory()
 {
@@ -58,12 +58,27 @@ Document getDocumentText()
 void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc, int /* initStyle */, Scintilla::IDocument *pAccess)
 {
     LexAccessor styler(pAccess);
+    StyleContext sc(startPos, lengthDoc, -1, styler);
+    Document d = getDocumentText();
+    int *styles = new int[d.len];
 
-    StyleContext sc(startPos, lengthDoc, RASCRIPT_STYLE_DEFAULT, styler);
+    TCHAR configPath[MAX_PATH];
+    ::SendMessage(nppData._nppHandle, NPPM_GETPLUGINSCONFIGDIR, MAX_PATH, (LPARAM)configPath);
+    std::wstring configFile(configPath);
+    std::wstring config = L"\\RAScript.xml";
+    configFile = configFile + config;
+    const std::string finalConfigFilePath(configFile.begin(), configFile.end());
+    tinyxml2::XMLDocument configDoc;
+    tinyxml2::XMLError eResult = configDoc.LoadFile(finalConfigFilePath.c_str());
+    if (eResult != tinyxml2::XML_SUCCESS)
+    {
+        DBUG(L"Error loading config from " << finalConfigFilePath.c_str() << L": " << configDoc.ErrorName());
+        return;
+    }
+    tinyxml2::XMLElement *configNode = configDoc.RootElement()->FirstChildElement("RAScript");
 
-    DBUG("Here");
-
-    ParseFile();
+    DBUG(configNode->Value())
+    ParseFile(configNode, styles, d.text);
 
     for (;; sc.Forward())
     {
@@ -72,9 +87,10 @@ void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc,
             break;
         }
     }
-    Document d = getDocumentText();
-    DBUG("Last Letter Typed: " + d.text[d.len - 1]);
+    DBUG(L"Done Parsing");
     sc.Complete();
+    delete[] styles;
+    styles = nullptr;
 }
 
 extern "C" __declspec(dllexport) int SCI_METHOD GetLexerCount()
