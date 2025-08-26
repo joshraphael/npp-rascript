@@ -45,7 +45,11 @@ Document getDocumentText()
     int which = -1;
     ::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
     if (which == -1)
+    {
         return d;
+    }
+    DBUG(L"which");
+    DBUG(which);
     HWND curScintilla = (which == 0) ? nppData._scintillaMainHandle : nppData._scintillaSecondHandle;
     long nLen = ::SendMessage(curScintilla, SCI_GETLENGTH, 0, 0);
     char *buffer = new char[nLen + 1];
@@ -61,7 +65,6 @@ void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc,
     LexAccessor styler(pAccess);
     StyleContext sc(startPos, lengthDoc, -1, styler);
     Document d = getDocumentText();
-    int *styles = new int[d.len];
 
     TCHAR configPath[MAX_PATH];
     ::SendMessage(nppData._nppHandle, NPPM_GETPLUGINSCONFIGDIR, MAX_PATH, (LPARAM)configPath);
@@ -73,13 +76,11 @@ void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc,
     tinyxml2::XMLError eResult = configDoc.LoadFile(finalConfigFilePath.c_str());
     if (eResult != tinyxml2::XML_SUCCESS)
     {
-        DBUG(L"Error loading config from " << finalConfigFilePath.c_str() << L": " << configDoc.ErrorName());
         return;
     }
     tinyxml2::XMLElement *configNode = configDoc.RootElement()->FirstChildElement("RAScript");
 
-    DBUG(configNode->Value())
-    ParseFile(configNode, styles, d.text);
+    int *styles = ParseFile(configNode, d.len, d.text);
 
     for (;; sc.Forward())
     {
@@ -88,7 +89,6 @@ void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc,
             break;
         }
     }
-    DBUG(L"Done Parsing");
     sc.Complete();
     delete[] styles;
     styles = nullptr;

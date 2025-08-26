@@ -23,6 +23,7 @@ arm64/
 *.log
 *.lib
 *.exp
+*.rascript
 out/
 .vscode/settings.json
 *.vcxproj.user

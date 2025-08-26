@@ -20,7 +20,7 @@ std::string config_contents = R"<NPP_RASCRIPT>(
     </LexerStyles>
     <RAScript>
         <Token name="Block Comments" type="DELIMETER" start="/*" end="*/" style="1" />
-        <Token name="Line Comments" type="NORMAL" regex="//.*$" style="1" />
+        <Token name="Line Comments" type="NORMAL" regex="//.*" style="1" />
         <Token name="test3" />
     </RAScript>
 </NotepadPlus>

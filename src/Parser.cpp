@@ -1,4 +1,5 @@
 #include <string>
+#include <regex>
 
 #include "PluginInterface.h"
 #include "tinyxml2.h"
@@ -64,19 +65,38 @@ Token getToken(tinyxml2::XMLElement *e)
     return t;
 }
 
-void ParseFile(tinyxml2::XMLElement *config, int * /* styles */, std::string /* text */)
+int *ParseFile(tinyxml2::XMLElement *config, int length, std::string text)
 {
-    // styles[0] = 2;
+    int *styles = new int[length];
+    for (int i = 0; i < length; i++)
+    {
+        styles[i] = -1;
+    }
     Token *tokens = new Token[config->ChildElementCount()];
-    int i = 0;
+    int len = 0;
     for (tinyxml2::XMLElement *e = config->FirstChildElement("Token"); e != NULL; e = e->NextSiblingElement("Token"))
     {
         Token token = getToken(e);
         if (token.initialized)
         {
-            tokens[i] = token;
-            i++;
+            tokens[len] = token;
+            len++;
+        }
+    }
+    for (int i = 0; i < len; i++)
+    {
+        Token token = tokens[i];
+        if (token.type == "NORMAL")
+        {
+            std::regex pattern(token.regex.c_str());
+            auto begin = std::sregex_iterator{text.begin(), text.end(), pattern};
+            auto end = std::sregex_iterator();
+            for (std::sregex_iterator match = begin; match != end; ++match)
+            {
+                DBUG(match->position() << " : " << match->position() + match->length());
+            }
         }
     }
     delete[] tokens;
+    return styles;
 }
