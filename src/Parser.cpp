@@ -94,14 +94,15 @@ int *ParseFile(tinyxml2::XMLElement *config, int length, std::string text)
             for (; it != end; ++it)
             {
                 boost::smatch m = *it;
-                unsigned long long numGroups = m.size();
-                long long strLen = m.length();
-                long long pos = m.position();
+                int numGroups = static_cast<int>(m.size());
+                ptrdiff_t strLen = m.length();
+                ptrdiff_t pos = m.position();
                 if (numGroups > 1) // regex contains groups, need to parse each group and stylize them appropriately
                 {
-                    for (unsigned long long j = 1; j <= numGroups; j++)
+                    for (int j = 1; j <= numGroups; j++)
                     {
-                        for (long long k = 1; k <= m[j].length(); k++)
+                        ptrdiff_t gLen = m[j].length();
+                        for (ptrdiff_t k = 1; k <= gLen; k++)
                         {
                             styles[m.position(j) + k] = token.style;
                         }
@@ -109,7 +110,7 @@ int *ParseFile(tinyxml2::XMLElement *config, int length, std::string text)
                 }
                 else // regex contains no groups, just stylize the matched string
                 {
-                    for (long long j = 1; j <= strLen; j++)
+                    for (ptrdiff_t j = 1; j <= strLen; j++)
                     {
                         styles[pos + j] = token.style;
                     }
