@@ -1,6 +1,6 @@
 #include <string>
-#include <regex>
 
+#include "boost/regex.hpp"
 #include "PluginInterface.h"
 #include "tinyxml2.h"
 
@@ -65,7 +65,7 @@ Token getToken(tinyxml2::XMLElement *e)
     return t;
 }
 
-int *ParseFile(tinyxml2::XMLElement *config, int length, std::string /*text*/)
+int *ParseFile(tinyxml2::XMLElement *config, int length, std::string text)
 {
     int *styles = new int[length];
     for (int i = 0; i < length; i++)
@@ -88,34 +88,33 @@ int *ParseFile(tinyxml2::XMLElement *config, int length, std::string /*text*/)
         Token token = tokens[i];
         if (token.type == "NORMAL")
         {
-            // std::regex pattern(token.regex.c_str());
-            // std::string::const_iterator start = text.begin();
-            // std::string::const_iterator end = text.end();
-            // std::smatch m;
-            // while (std::regex_search(start, end, m, pattern))
-            // {
-            //     int numGroups = m.size();
-            //     int strLen = m.length();
-            //     int pos = m.position();
-            //     if (numGroups > 1) // regex contains groups, need to parse each group and stylize them appropriately
-            //     {
-            //         for (int j = 1; j <= numGroups; j++)
-            //         {
-            //             for (int k = 1; k <= m[j].length(); k++)
-            //             {
-            //                 styles[m.position(j) + k] = token.style;
-            //             }
-            //         }
-            //     }
-            //     else // regex contains no groups, just stylize the matched string
-            //     {
-            //         for (int j = 1; j <= strLen; j++)
-            //         {
-            //             styles[pos + j] = token.style;
-            //         }
-            //     }
-            //     start = m[0].second;
-            // }
+            boost::regex pattern(token.regex.c_str());
+            boost::sregex_iterator it(text.begin(), text.end(), pattern);
+            boost::sregex_iterator end;
+            for (; it != end; ++it)
+            {
+                boost::smatch m = *it;
+                int numGroups = m.size();
+                int strLen = m.length();
+                int pos = m.position();
+                if (numGroups > 1) // regex contains groups, need to parse each group and stylize them appropriately
+                {
+                    for (int j = 1; j <= numGroups; j++)
+                    {
+                        for (int k = 1; k <= m[j].length(); k++)
+                        {
+                            styles[m.position(j) + k] = token.style;
+                        }
+                    }
+                }
+                else // regex contains no groups, just stylize the matched string
+                {
+                    for (int j = 1; j <= strLen; j++)
+                    {
+                        styles[pos + j] = token.style;
+                    }
+                }
+            }
         }
     }
     delete[] tokens;

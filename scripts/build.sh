@@ -38,9 +38,11 @@ ${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE ${DBUG} \
 -Isrc/notepad-plus-plus/lexilla/lexlib \
 -c src/notepad-plus-plus/lexilla/lexlib/WordList.cxx -o out/WordList.o
 
-# Parser
+# Parser (Requires -BOOST_REGEX_STANDALONE definition to compile boost regex to improve performance)
 ${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE ${DBUG} \
+-DBOOST_REGEX_STANDALONE \
 -Isrc/tinyxml2 \
+-Isrc/notepad-plus-plus/boostregex \
 -Isrc/notepad-plus-plus/scintilla/include \
 -Isrc/notepad-plus-plus/PowerEditor/src/MISC/PluginsManager \
 -c src/Parser.cpp -o out/Parser.o

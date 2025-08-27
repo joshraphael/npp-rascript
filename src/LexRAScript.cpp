@@ -1,8 +1,9 @@
 #define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+#include <assert.h>
 #include <string>
 #include <string_view>
-#include <assert.h>
+#include <unordered_map>
+#include <windows.h>
 
 #include "ILexer.h"
 #include "LexAccessor.h"
@@ -87,14 +88,18 @@ void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc,
     Sci_PositionU lenDef = d.len;
 
     int *styles = ParseFile(configNode, d.len, d.text);
-
+    std::unordered_map<int, bool> stylesUpdated;
     for (;; sc.Forward())
     {
         if (sc.currentPos < lenDef)
         {
             int style = styles[sc.currentPos];
-            ::SendMessage(curScintilla, SCI_STYLESETBACK, style, (LPARAM)bgColor);
-            sc.ChangeState(styles[sc.currentPos]);
+            if (!stylesUpdated.count(style))
+            {
+                ::SendMessage(curScintilla, SCI_STYLESETBACK, style, (LPARAM)bgColor);
+                stylesUpdated[style] = true;
+            }
+            sc.ChangeState(style);
         }
         sc.SetState(0); // Needed for some reason, do not remove
         if (!sc.More())
