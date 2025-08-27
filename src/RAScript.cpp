@@ -37,7 +37,6 @@ void commandMenuInit()
 	{
 		outFile << config_contents;
 		outFile.close();
-		DBUG("File written successfully (or overwritten).");
 	}
 	else
 	{

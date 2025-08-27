@@ -48,8 +48,6 @@ Document getDocumentText()
     {
         return d;
     }
-    DBUG(L"which");
-    DBUG(which);
     HWND curScintilla = (which == 0) ? nppData._scintillaMainHandle : nppData._scintillaSecondHandle;
     long nLen = ::SendMessage(curScintilla, SCI_GETLENGTH, 0, 0);
     char *buffer = new char[nLen + 1];
@@ -62,10 +60,24 @@ Document getDocumentText()
 
 void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc, int /* initStyle */, Scintilla::IDocument *pAccess)
 {
-    // DBUG(L"Lexing!!!");
     LexAccessor styler(pAccess);
     StyleContext sc(startPos, lengthDoc, -1, styler);
     Document d = getDocumentText();
+
+    COLORREF bgColor = ::SendMessage(nppData._nppHandle, NPPM_GETEDITORDEFAULTBACKGROUNDCOLOR, 0, 0);
+    // std::stringstream backgroundColor;
+    // backgroundColor << std::hex << bgColor;
+    // std::string str_value = backgroundColor.str();
+    // DBUG(L"backgroundColor");
+    // DBUG(str_value.c_str());
+
+    int which = -1;
+    ::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
+    if (which == -1)
+    {
+        return;
+    }
+    HWND curScintilla = (which == 0) ? nppData._scintillaMainHandle : nppData._scintillaSecondHandle;
 
     TCHAR configPath[MAX_PATH];
     ::SendMessage(nppData._nppHandle, NPPM_GETPLUGINSCONFIGDIR, MAX_PATH, (LPARAM)configPath);
@@ -88,6 +100,8 @@ void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc,
     {
         if (sc.currentPos < lenDef)
         {
+            int style = styles[sc.currentPos];
+            ::SendMessage(curScintilla, SCI_STYLESETBACK, style, (LPARAM)bgColor);
             sc.ChangeState(styles[sc.currentPos]);
         }
         sc.SetState(0);
