@@ -11,7 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- boostregex inclusion from Notepad++ source
+- Config stylizing engine parser implementation
+- Syntax highlighting config tokens for: single line comments, block comments, header ID, functions, classes, control keywords
+- Set background color to match the users current default 
+
 ### Changed
+
+- Run lexer on entire document for every change instead of partial document
 
 ### Removed
 
