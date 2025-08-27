@@ -15,11 +15,15 @@ std::string config_contents = R"<NPP_RASCRIPT>(
         <LexerType name="RAScript" desc="RAScript file" ext="" excluded="no">
             <WordsStyle name="DEFAULT" styleID="0" fgColor="000000" />
             <WordsStyle name="COMMENT" styleID="1" fgColor="008000" />
+            <WordsStyle name="HEADER" styleID="2" fgColor="000080" />
+            <WordsStyle name="NUMBER" styleID="3" fgColor="800000" />
         </LexerType>
     </LexerStyles>
     <RAScript>
         <Token name="Block Comments" type="DELIMETER" start="/*" end="*/" style="1" />
-        <Token name="Line Comments" type="NORMAL" regex="//.*" style="1" />
+        <Token name="Line Comments" type="NORMAL" regex="//\s*#ID\s*=\s*\d+" style="1" />
+        <Token name="Header ID" type="NORMAL" regex="//\s*(#ID)\s*=\s*\d+" style="2" />
+        <Token name="Header ID" type="NORMAL" regex="//\s*#ID\s*=\s*(\d+)" style="3" />
         <Token name="test3" />
     </RAScript>
 </NotepadPlus>

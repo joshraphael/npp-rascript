@@ -37,18 +37,11 @@ struct Document
     std::string text;
 };
 
-Document getDocumentText()
+Document getDocumentText(HWND curScintilla)
 {
     Document d;
     d.len = 0;
     d.text = "\0";
-    int which = -1;
-    ::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
-    if (which == -1)
-    {
-        return d;
-    }
-    HWND curScintilla = (which == 0) ? nppData._scintillaMainHandle : nppData._scintillaSecondHandle;
     long nLen = ::SendMessage(curScintilla, SCI_GETLENGTH, 0, 0);
     char *buffer = new char[nLen + 1];
     ::SendMessage(curScintilla, SCI_GETTEXT, nLen + 1, (LPARAM)buffer);
@@ -62,15 +55,6 @@ void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc,
 {
     LexAccessor styler(pAccess);
     StyleContext sc(startPos, lengthDoc, -1, styler);
-    Document d = getDocumentText();
-
-    COLORREF bgColor = ::SendMessage(nppData._nppHandle, NPPM_GETEDITORDEFAULTBACKGROUNDCOLOR, 0, 0);
-    // std::stringstream backgroundColor;
-    // backgroundColor << std::hex << bgColor;
-    // std::string str_value = backgroundColor.str();
-    // DBUG(L"backgroundColor");
-    // DBUG(str_value.c_str());
-
     int which = -1;
     ::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
     if (which == -1)
@@ -78,6 +62,14 @@ void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc,
         return;
     }
     HWND curScintilla = (which == 0) ? nppData._scintillaMainHandle : nppData._scintillaSecondHandle;
+    Document d = getDocumentText(curScintilla);
+
+    COLORREF bgColor = ::SendMessage(nppData._nppHandle, NPPM_GETEDITORDEFAULTBACKGROUNDCOLOR, 0, 0);
+    // std::stringstream backgroundColor;
+    // backgroundColor << std::hex << bgColor;
+    // std::string str_value = backgroundColor.str();
+    // DBUG(L"backgroundColor");
+    // DBUG(str_value.c_str());
 
     TCHAR configPath[MAX_PATH];
     ::SendMessage(nppData._nppHandle, NPPM_GETPLUGINSCONFIGDIR, MAX_PATH, (LPARAM)configPath);
@@ -104,7 +96,7 @@ void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc,
             ::SendMessage(curScintilla, SCI_STYLESETBACK, style, (LPARAM)bgColor);
             sc.ChangeState(styles[sc.currentPos]);
         }
-        sc.SetState(0);
+        sc.SetState(0); // Needed for some reason, do not remove
         if (!sc.More())
         {
             break;

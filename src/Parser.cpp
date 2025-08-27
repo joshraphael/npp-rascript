@@ -65,7 +65,7 @@ Token getToken(tinyxml2::XMLElement *e)
     return t;
 }
 
-int *ParseFile(tinyxml2::XMLElement *config, int length, std::string text)
+int *ParseFile(tinyxml2::XMLElement *config, int length, std::string /*text*/)
 {
     int *styles = new int[length];
     for (int i = 0; i < length; i++)
@@ -88,17 +88,34 @@ int *ParseFile(tinyxml2::XMLElement *config, int length, std::string text)
         Token token = tokens[i];
         if (token.type == "NORMAL")
         {
-            std::regex pattern(token.regex.c_str());
-            auto begin = std::sregex_iterator{text.begin(), text.end(), pattern};
-            auto end = std::sregex_iterator();
-            for (std::sregex_iterator match = begin; match != end; ++match)
-            {
-                styles[match->position() + 1] = 1;
-                for (int j = 1; j <= match->length(); j++)
-                {
-                    styles[match->position() + j] = token.style;
-                }
-            }
+            // std::regex pattern(token.regex.c_str());
+            // std::string::const_iterator start = text.begin();
+            // std::string::const_iterator end = text.end();
+            // std::smatch m;
+            // while (std::regex_search(start, end, m, pattern))
+            // {
+            //     int numGroups = m.size();
+            //     int strLen = m.length();
+            //     int pos = m.position();
+            //     if (numGroups > 1) // regex contains groups, need to parse each group and stylize them appropriately
+            //     {
+            //         for (int j = 1; j <= numGroups; j++)
+            //         {
+            //             for (int k = 1; k <= m[j].length(); k++)
+            //             {
+            //                 styles[m.position(j) + k] = token.style;
+            //             }
+            //         }
+            //     }
+            //     else // regex contains no groups, just stylize the matched string
+            //     {
+            //         for (int j = 1; j <= strLen; j++)
+            //         {
+            //             styles[pos + j] = token.style;
+            //         }
+            //     }
+            //     start = m[0].second;
+            // }
         }
     }
     delete[] tokens;
