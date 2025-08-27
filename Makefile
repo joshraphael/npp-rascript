@@ -31,10 +31,14 @@ compile-Win32: generate
 	ARCH=i686 ./scripts/build.sh
 
 install: compile-x64
+	rm -rf ~/.wine/drive_c/Program\ Files/Notepad++/plugins/RAScript
+	mkdir -p ~/.wine/drive_c/Program\ Files/Notepad++/plugins/RAScript
 	cp out/RAScript.dll ~/.wine/drive_c/Program\ Files/Notepad++/plugins/RAScript
 	make open
 
 install-Win32: compile-Win32
+	rm -rf ~/.wine/drive_c/Program\ Files\ \(x86\)/Notepad++/plugins/RAScript
+	mkdir -p ~/.wine/drive_c/Program\ Files\ \(x86\)/Notepad++/plugins/RAScript
 	cp out/RAScript.dll ~/.wine/drive_c/Program\ Files\ \(x86\)/Notepad++/plugins/RAScript
 	make open-Win32
 

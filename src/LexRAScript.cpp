@@ -52,10 +52,9 @@ Document getDocumentText(HWND curScintilla)
     return d;
 }
 
-void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc, int /* initStyle */, Scintilla::IDocument *pAccess)
+void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc, int initStyle, Scintilla::IDocument *pAccess)
 {
     LexAccessor styler(pAccess);
-    StyleContext sc(startPos, lengthDoc, -1, styler);
     int which = -1;
     ::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
     if (which == -1)
@@ -64,6 +63,12 @@ void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc,
     }
     HWND curScintilla = (which == 0) ? nppData._scintillaMainHandle : nppData._scintillaSecondHandle;
     Document d = getDocumentText(curScintilla);
+    // I don't know, this might be really fucking bad.
+    // I'm forcing scintilla to restyle the entire document for each change,
+    // but I can't get the document to fully style after closing/opening because its only partially updating
+    startPos = 0;
+    lengthDoc = d.len;
+    StyleContext sc(startPos, lengthDoc, initStyle, styler);
 
     COLORREF bgColor = ::SendMessage(nppData._nppHandle, NPPM_GETEDITORDEFAULTBACKGROUNDCOLOR, 0, 0);
     // std::stringstream backgroundColor;
@@ -89,11 +94,20 @@ void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc,
 
     int *styles = ParseFile(configNode, d.len, d.text);
     std::unordered_map<int, bool> stylesUpdated;
+    int found = 0;
     for (;; sc.Forward())
     {
         if (sc.currentPos < lenDef)
         {
             int style = styles[sc.currentPos];
+            if (found < 10)
+            {
+                if (style != 0)
+                {
+                    DBUG(L"STYLE: " << style << L", POS: " << sc.currentPos << L", LINE: " << sc.currentLine << L", FOUND: " << found);
+                    found++;
+                }
+            }
             if (!stylesUpdated.count(style))
             {
                 ::SendMessage(curScintilla, SCI_STYLESETBACK, style, (LPARAM)bgColor);
@@ -108,8 +122,10 @@ void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc,
         }
     }
     sc.Complete();
+    DBUG(L"COMPLETE");
     delete[] styles;
     styles = nullptr;
+    styler.Flush();
 }
 
 extern "C" __declspec(dllexport) int SCI_METHOD GetLexerCount()

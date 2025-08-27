@@ -21,9 +21,9 @@ std::string config_contents = R"<NPP_RASCRIPT>(
     </LexerStyles>
     <RAScript>
         <Token name="Block Comments" type="DELIMETER" start="/*" end="*/" style="1" />
-        <Token name="Line Comments" type="NORMAL" regex="//\s*#ID\s*=\s*\d+" style="1" />
-        <Token name="Header ID" type="NORMAL" regex="//\s*(#ID)\s*=\s*\d+" style="2" />
-        <Token name="Header ID" type="NORMAL" regex="//\s*#ID\s*=\s*(\d+)" style="3" />
+        <Token name="Line Comments" type="NORMAL" regex="//[^\r\n]*" style="1" />
+        <Token name="Header ID Name" type="NORMAL" regex="(^|\n|\r)//\s*(#ID)\s*=\s*\d+[ \t]*(\n|$)" style="2" />
+        <Token name="Header ID Number" type="NORMAL" regex="(^|\n|\r)//\s*#ID\s*=\s*(\d+)[ \t]*(\n|$)" style="3" />
         <Token name="test3" />
     </RAScript>
 </NotepadPlus>
