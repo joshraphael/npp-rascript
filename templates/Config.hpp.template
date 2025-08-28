@@ -13,24 +13,31 @@ std::string config_contents = R"<NPP_RASCRIPT>(
     </Languages>
     <LexerStyles>
         <LexerType name="RAScript" desc="RAScript file" ext="" excluded="no">
-            <WordsStyle name="DEFAULT" styleID="0" fgColor="000000" />
+            <WordsStyle name="DEFAULT" styleID="0" fgColor="cccccc" />
             <WordsStyle name="COMMENT" styleID="1" fgColor="008000" />
             <WordsStyle name="HEADER" styleID="2" fgColor="000080" />
             <WordsStyle name="NUMBER" styleID="3" fgColor="800000" />
             <WordsStyle name="CONTROLS" styleID="4" fgColor="800080" />
+            <WordsStyle name="YELLOW" styleID="5" fgColor="808000" />
+            <WordsStyle name="LIGHT GREEN" styleID="6" fgColor="2ebe7d" />
+            <WordsStyle name="LIGHT GREEN" styleID="7" fgColor="8ddefc" />
+            <WordsStyle name="STRING RED" styleID="8" fgColor="d58d7a" />
         </LexerType>
     </LexerStyles>
     <RAScript>
         <Token name="Block Comments" type="DELIMETER" start="/*" end="*/" style="4" />
+        <Token name="Variable Usage" type="NORMAL" regex="([a-zA-Z_][\w]*)[\t ]*" style="7" />
+        <Token name="Variable Assignment" type="NORMAL" regex="([a-zA-Z_][\w]*)[\t ]*=" style="6" />
         <Token name="Controls" type="NORMAL" regex="\b(if|else|for|in|return)\b" style="4" />
-        <Token name="Booleans" type="NORMAL" regex="\b(true|false)\b" style="2" />
+        <Token name="Booleans" type="NORMAL" regex="\b(true|false|this)\b" style="2" />
         <Token name="Decimals" type="NORMAL" regex="\b[0-9]+\b" style="3" />
         <Token name="Hex" type="NORMAL" regex="\b(0x[a-fA-F0-9]+)\b" style="3" />
         <Token name="Class" type="NORMAL" regex="(\bclass\b)[\t ]*[a-zA-Z_][\w]*" style="3" />
         <Token name="Class Name" type="NORMAL" regex="\bclass\b[\t ]*([a-zA-Z_][\w]*)" style="2" />
-        <Token name="Class Name" type="NORMAL" regex="(\bfunction\b)[\t ]*[a-zA-Z_][\w]*\(" style="3" />
-        <Token name="Class Name" type="NORMAL" regex="\bfunction\b[\t ]*([a-zA-Z_][\w]*)\(" style="4" />
-        <Token name="Strings" type="NORMAL" regex='\"[^\"]*\"' style="2" />
+        <Token name="Function" type="NORMAL" regex="(\bfunction\b)[\t ]*[a-zA-Z_][\w]*\(" style="3" />
+        <Token name="Function Calls" type="NORMAL" regex="([a-zA-Z_][\w]*)\(" style="5" />
+        <Token name="Function Names" type="NORMAL" regex="\bfunction\b[\t ]*([a-zA-Z_][\w]*)\(" style="4" />
+        <Token name="Strings" type="NORMAL" regex='\"[^\"]*\"' style="8" />
         <Token name="Line Comments" type="NORMAL" regex="//[^\n\r]*" style="1" />
         <Token name="Block Comments" type="NORMAL" regex="/\*[\s\S]*?\*/" style="1" />
         <Token name="Header ID Name" type="NORMAL" regex="(^|\n|\r)//[ \t]*(#ID)[ \t]*=[ \t]*\d+[ \t]*(\n|\r|$)" style="2" />

@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - boostregex inclusion from Notepad++ source
 - Config stylizing engine parser implementation
-- Syntax highlighting config tokens for: single line comments, block comments, header ID, functions, classes, control keywords
+- Syntax highlighting config tokens for: single line comments, block comments, variables, header ID, functions, fuction calls, classes, this and control keywords
 - Set background color to match the users current default 
 
 ### Changed
