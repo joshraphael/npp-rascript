@@ -2,7 +2,7 @@
 
 if [ -z "${ARCH}" ]; then echo "empty architecture for build"; exit 1; fi;
 
-if [[ ${ARCH} != @(${ARCH}|i686) ]]; then echo "invalid architecture selected to build: ${chapter}"; exit 1; fi;
+if [[ ${ARCH} != @(x86_64|i686) ]]; then echo "invalid architecture selected to build: ${ARCH}"; exit 1; fi;
 
 ENABLE_DEBUG=true
 DBUG=""
@@ -38,14 +38,18 @@ ${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE ${DBUG} \
 -Isrc/notepad-plus-plus/lexilla/lexlib \
 -c src/notepad-plus-plus/lexilla/lexlib/WordList.cxx -o out/WordList.o
 
-# Parser
+# Parser (Requires BOOST_REGEX_STANDALONE definition to compile boost regex to improve performance)
 ${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE ${DBUG} \
+-DBOOST_REGEX_STANDALONE \
+-Isrc/tinyxml2 \
+-Isrc/notepad-plus-plus/boostregex \
 -Isrc/notepad-plus-plus/scintilla/include \
 -Isrc/notepad-plus-plus/PowerEditor/src/MISC/PluginsManager \
 -c src/Parser.cpp -o out/Parser.o
 
 # LexRAScript
 ${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE ${DBUG} \
+-Isrc/tinyxml2 \
 -Isrc/notepad-plus-plus/scintilla/include \
 -Isrc/notepad-plus-plus/lexilla/lexlib \
 -Isrc/notepad-plus-plus/lexilla/include \
@@ -57,7 +61,6 @@ ${ARCH}-w64-mingw32-windres src/RAScript.rc -o out/rc.o
 
 # RAScript
 ${ARCH}-w64-mingw32-g++ -std=c++17 -Wall -Werror -Wextra -DUNICODE ${DBUG} \
--Isrc/tinyxml2 \
 -Isrc/notepad-plus-plus/PowerEditor/src \
 -Isrc/notepad-plus-plus/PowerEditor/src/MISC/PluginsManager \
 -Isrc/notepad-plus-plus/scintilla/include \

@@ -4,7 +4,6 @@
 #ifdef DEBUG
 #ifndef DBUG
 
-#include <windows.h>
 #include <sstream>
 
 #define DBUG(s)                                \

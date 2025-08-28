@@ -16,4 +16,4 @@ if [[ ${GITHUB_REF_TYPE} == "tag" && ${GITHUB_REF_NAME} != "" ]]; then
 fi
 
 cat templates/RAScript.rc.template | envsubst > src/RAScript.rc
-cat templates/Config.h.template | envsubst > src/Config.h
+cat templates/Config.hpp.template | envsubst > src/Config.hpp

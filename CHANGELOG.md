@@ -5,6 +5,23 @@ All notable changes to the "npp-rascript" extension will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [[0.3.0](https://github.com/joshraphael/npp-rascript/releases/tag/v0.3.0)] - 2025-08-28
+
+[diff](https://github.com/joshraphael/npp-rascript/compare/v0.2.1...v0.3.0)
+
+### Added
+
+- boostregex inclusion from Notepad++ source
+- Config stylizing engine parser implementation
+- Syntax highlighting config tokens for: single line comments, block comments, variables, header ID, functions, fuction calls, classes, this and control keywords
+- Set background color to match the users current default 
+
+### Changed
+
+- Run lexer on entire document for every change instead of partial document
+
+### Removed
+
 ## [[0.2.1](https://github.com/joshraphael/npp-rascript/releases/tag/v0.2.1)] - 2025-08-25
 
 [diff](https://github.com/joshraphael/npp-rascript/compare/v0.2.0...v0.2.1)

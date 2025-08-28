@@ -1,19 +1,21 @@
 #define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+#include <assert.h>
 #include <string>
 #include <string_view>
-#include <assert.h>
+#include <unordered_map>
+#include <windows.h>
 
-#include "DebugUtils.h"
-#include "LexRAScript.h"
-
-#include "PluginInterface.h"
+#include "ILexer.h"
 #include "LexAccessor.h"
+#include "tinyxml2.h"
+#include "PluginInterface.h"
+
+#include "DebugUtils.hpp"
+#include "LexRAScript.hpp"
+#include "Parser.hpp"
 #include "StyleContext.h"
-#include "Parser.h"
 
 extern NppData nppData;
-const int RASCRIPT_STYLE_DEFAULT = 0;
 
 Scintilla::ILexer5 *LexRAScript::LexerFactory()
 {
@@ -36,16 +38,11 @@ struct Document
     std::string text;
 };
 
-Document getDocumentText()
+Document getDocumentText(HWND curScintilla)
 {
     Document d;
     d.len = 0;
     d.text = "\0";
-    int which = -1;
-    ::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
-    if (which == -1)
-        return d;
-    HWND curScintilla = (which == 0) ? nppData._scintillaMainHandle : nppData._scintillaSecondHandle;
     long nLen = ::SendMessage(curScintilla, SCI_GETLENGTH, 0, 0);
     char *buffer = new char[nLen + 1];
     ::SendMessage(curScintilla, SCI_GETTEXT, nLen + 1, (LPARAM)buffer);
@@ -55,26 +52,80 @@ Document getDocumentText()
     return d;
 }
 
-void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc, int /* initStyle */, Scintilla::IDocument *pAccess)
+void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc, int initStyle, Scintilla::IDocument *pAccess)
 {
     LexAccessor styler(pAccess);
+    int which = -1;
+    ::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
+    if (which == -1)
+    {
+        return;
+    }
+    HWND curScintilla = (which == 0) ? nppData._scintillaMainHandle : nppData._scintillaSecondHandle;
+    Document d = getDocumentText(curScintilla);
+    // I don't know, this might be really fucking bad.
+    // I'm forcing scintilla to restyle the entire document for each change,
+    // but I can't get the document to fully style after closing/opening because its only partially updating
+    startPos = 0;
+    lengthDoc = d.len;
+    StyleContext sc(startPos, lengthDoc, initStyle, styler);
 
-    StyleContext sc(startPos, lengthDoc, RASCRIPT_STYLE_DEFAULT, styler);
+    COLORREF bgColor = ::SendMessage(nppData._nppHandle, NPPM_GETEDITORDEFAULTBACKGROUNDCOLOR, 0, 0);
+    // std::stringstream backgroundColor;
+    // backgroundColor << std::hex << bgColor;
+    // std::string str_value = backgroundColor.str();
+    // DBUG(L"backgroundColor");
+    // DBUG(str_value.c_str());
 
-    DBUG("Here");
+    TCHAR configPath[MAX_PATH];
+    ::SendMessage(nppData._nppHandle, NPPM_GETPLUGINSCONFIGDIR, MAX_PATH, (LPARAM)configPath);
+    std::wstring configFile(configPath);
+    std::wstring config = L"\\RAScript.xml";
+    configFile = configFile + config;
+    const std::string finalConfigFilePath(configFile.begin(), configFile.end());
+    tinyxml2::XMLDocument configDoc;
+    tinyxml2::XMLError eResult = configDoc.LoadFile(finalConfigFilePath.c_str());
+    if (eResult != tinyxml2::XML_SUCCESS)
+    {
+        return;
+    }
+    tinyxml2::XMLElement *configNode = configDoc.RootElement()->FirstChildElement("RAScript");
+    Sci_PositionU lenDef = d.len;
 
-    ParseFile();
-
+    int *styles = ParseFile(configNode, d.len, d.text);
+    std::unordered_map<int, bool> stylesUpdated;
+    int found = 0;
     for (;; sc.Forward())
     {
+        if (sc.currentPos < lenDef)
+        {
+            int style = styles[sc.currentPos];
+            if (found < 10)
+            {
+                if (style != 0)
+                {
+                    DBUG(L"STYLE: " << style << L", POS: " << sc.currentPos << L", LINE: " << sc.currentLine << L", FOUND: " << found);
+                    found++;
+                }
+            }
+            if (!stylesUpdated.count(style))
+            {
+                ::SendMessage(curScintilla, SCI_STYLESETBACK, style, (LPARAM)bgColor);
+                stylesUpdated[style] = true;
+            }
+            sc.ChangeState(style);
+        }
+        sc.SetState(0); // Needed for some reason, do not remove
         if (!sc.More())
         {
             break;
         }
     }
-    Document d = getDocumentText();
-    DBUG("Last Letter Typed: " + d.text[d.len - 1]);
     sc.Complete();
+    DBUG(L"COMPLETE");
+    delete[] styles;
+    styles = nullptr;
+    styler.Flush();
 }
 
 extern "C" __declspec(dllexport) int SCI_METHOD GetLexerCount()
