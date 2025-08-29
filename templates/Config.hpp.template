@@ -13,35 +13,82 @@ std::string config_contents = R"<NPP_RASCRIPT>(
     </Languages>
     <LexerStyles>
         <LexerType name="RAScript" desc="RAScript file" ext="" excluded="no">
-            <WordsStyle name="DEFAULT" styleID="0" fgColor="cccccc" />
-            <WordsStyle name="COMMENT" styleID="1" fgColor="008000" />
-            <WordsStyle name="HEADER" styleID="2" fgColor="000080" />
-            <WordsStyle name="NUMBER" styleID="3" fgColor="800000" />
-            <WordsStyle name="CONTROLS" styleID="4" fgColor="800080" />
-            <WordsStyle name="YELLOW" styleID="5" fgColor="808000" />
-            <WordsStyle name="LIGHT GREEN" styleID="6" fgColor="2ebe7d" />
-            <WordsStyle name="LIGHT GREEN" styleID="7" fgColor="8ddefc" />
-            <WordsStyle name="STRING RED" styleID="8" fgColor="d58d7a" />
+            <WordsStyle name="LIGHT-VARIABLES" styleID="1" fgColor="001080" />
+            <WordsStyle name="DARK-VARIABLES" styleID="2" fgColor="9CDCFE" />
+
+            <WordsStyle name="LIGHT-CONTROL" styleID="3" fgColor="B5200D" />
+            <WordsStyle name="DARK-CONTROL" styleID="4" fgColor="C586C0" />
+
+            <WordsStyle name="LIGHT-THIS" styleID="5" fgColor="0F4A85" />
+            <WordsStyle name="DARK-THIS" styleID="6" fgColor="569CD6" />
+
+            <WordsStyle name="LIGHT-BOOLEANS" styleID="7" fgColor="0F4A85" />
+            <WordsStyle name="DARK-BOOLEANS" styleID="8" fgColor="569CD6" />
+
+            <WordsStyle name="LIGHT-DECIMALS" styleID="9" fgColor="096D48" />
+            <WordsStyle name="DARK-DECIMALS" styleID="10" fgColor="B5CEA8" />
+
+            <WordsStyle name="LIGHT-HAXADECIMALS" styleID="11" fgColor="096D48" />
+            <WordsStyle name="DARK-HAXADECIMALS" styleID="12" fgColor="B5CEA8" />
+
+            <WordsStyle name="LIGHT-CLASS" styleID="13" fgColor="0F4A85" />
+            <WordsStyle name="DARK-CLASS" styleID="14" fgColor="569CD6" />
+
+            <WordsStyle name="LIGHT-CLASS-NAME" styleID="15" fgColor="185E73" />
+            <WordsStyle name="DARK-CLASS-NAME" styleID="16" fgColor="4EC9B0" />
+
+            <WordsStyle name="LIGHT-FUNCTION" styleID="17" fgColor="0F4A85" />
+            <WordsStyle name="DARK-FUNCTION" styleID="18" fgColor="569CD6" />
+
+            <WordsStyle name="LIGHT-FUNCTION-CALLS" styleID="19" fgColor="5E2CBC" />
+            <WordsStyle name="DARK-FUNCTION-CALLS" styleID="20" fgColor="DCDCAA" />
+
+            <WordsStyle name="LIGHT-FUNCTION-NAME" styleID="21" fgColor="5E2CBC" />
+            <WordsStyle name="DARK-FUNCTION-NAME" styleID="22" fgColor="DCDCAA" />
+
+            <WordsStyle name="LIGHT-STRINGS" styleID="23" fgColor="0F4A85" />
+            <WordsStyle name="DARK-STRINGS" styleID="24" fgColor="CE9178" />
+
+            <WordsStyle name="LIGHT-LINE-COMMENTS" styleID="25" fgColor="515151" />
+            <WordsStyle name="DARK-LINE-COMMENTS" styleID="26" fgColor="6A9955" />
+
+            <WordsStyle name="LIGHT-BLOCK-COMMENTS" styleID="27" fgColor="515151" />
+            <WordsStyle name="DARK-BLOCK-COMMENTS" styleID="28" fgColor="6A9955" />
+
+            <WordsStyle name="LIGHT-HEADER-ID-KEY" styleID="29" fgColor="0F4A85" />
+            <WordsStyle name="DARK-HEADER-ID-KEY" styleID="30" fgColor="569CD6" />
+
+            <WordsStyle name="LIGHT-HEADER-ID-VALUE" styleID="31" fgColor="096D48" />
+            <!-- styleIDs 32, 33, 34, 35 are reserved, do not use -->
+            <WordsStyle name="DARK-HEADER-ID-VALUE" styleID="36" fgColor="B5CEA8" />
+
+            <!-- styleIDs 37 are reserved, do not use -->
+            <WordsStyle name="LIGHT-HEADER-MINIMUMVERSION-KEY" styleID="38" fgColor="0F4A85" />
+            <WordsStyle name="DARK-HEADER-MINIMUMVERSION-KEY" styleID="39" fgColor="569CD6" />
+
+            <WordsStyle name="LIGHT-HEADER-MINIMUMVERSION-VALUE" styleID="40" fgColor="096D48" />
+            <WordsStyle name="DARK-HEADER-MINIMUMVERSION-VALUE" styleID="41" fgColor="B5CEA8" />
         </LexerType>
     </LexerStyles>
     <RAScript>
-        <Token name="Block Comments" type="DELIMETER" start="/*" end="*/" style="4" />
-        <Token name="Variable Usage" type="NORMAL" regex="([a-zA-Z_][\w]*)[\t ]*" style="7" />
-        <Token name="Variable Assignment" type="NORMAL" regex="([a-zA-Z_][\w]*)[\t ]*=" style="6" />
-        <Token name="Controls" type="NORMAL" regex="\b(if|else|for|in|return)\b" style="4" />
-        <Token name="Booleans" type="NORMAL" regex="\b(true|false|this)\b" style="2" />
-        <Token name="Decimals" type="NORMAL" regex="\b[0-9]+\b" style="3" />
-        <Token name="Hex" type="NORMAL" regex="\b(0x[a-fA-F0-9]+)\b" style="3" />
-        <Token name="Class" type="NORMAL" regex="(\bclass\b)[\t ]*[a-zA-Z_][\w]*" style="3" />
-        <Token name="Class Name" type="NORMAL" regex="\bclass\b[\t ]*([a-zA-Z_][\w]*)" style="2" />
-        <Token name="Function" type="NORMAL" regex="(\bfunction\b)[\t ]*[a-zA-Z_][\w]*\(" style="3" />
-        <Token name="Function Calls" type="NORMAL" regex="([a-zA-Z_][\w]*)\(" style="5" />
-        <Token name="Function Names" type="NORMAL" regex="\bfunction\b[\t ]*([a-zA-Z_][\w]*)\(" style="4" />
-        <Token name="Strings" type="NORMAL" regex='\"[^\"]*\"' style="8" />
-        <Token name="Line Comments" type="NORMAL" regex="//[^\n\r]*" style="1" />
-        <Token name="Block Comments" type="NORMAL" regex="/\*[\s\S]*?\*/" style="1" />
-        <Token name="Header ID Name" type="NORMAL" regex="(^|\n|\r)//[ \t]*(#ID)[ \t]*=[ \t]*\d+[ \t]*(\n|\r|$)" style="2" />
-        <Token name="Header ID Number" type="NORMAL" regex="(^|\n|\r)//[ \t]*#ID[ \t]*=[ \t]*(\d+)[ \t]*(\n|\r|$)" style="3" />
+        <Token name="Variables" type="NORMAL" regex="([a-zA-Z_][\w]*)[\t ]*" lightStyle="1" darkStyle="2" />
+        <Token name="Controls" type="NORMAL" regex="\b(if|else|for|in|return)\b" lightStyle="3" darkStyle="4" />
+        <Token name="This" type="NORMAL" regex="\b(this)\b" lightStyle="5" darkStyle="6" />
+        <Token name="Booleans" type="NORMAL" regex="\b(true|false)\b" lightStyle="7" darkStyle="8" />
+        <Token name="Decimals" type="NORMAL" regex="\b[0-9]+\b" lightStyle="9" darkStyle="10" />
+        <Token name="Hexadecimals" type="NORMAL" regex="\b(0x[a-fA-F0-9]+)\b" lightStyle="11" darkStyle="12" />
+        <Token name="Class" type="NORMAL" regex="(\bclass\b)[\t ]*[a-zA-Z_][\w]*" lightStyle="13" darkStyle="14" />
+        <Token name="Class Name" type="NORMAL" regex="\bclass\b[\t ]*([a-zA-Z_][\w]*)" lightStyle="15" darkStyle="16" />
+        <Token name="Function" type="NORMAL" regex="(\bfunction\b)[\t ]*[a-zA-Z_][\w]*\(" lightStyle="17" darkStyle="18" />
+        <Token name="Function Calls" type="NORMAL" regex="([a-zA-Z_][\w]*)\(" lightStyle="19" darkStyle="20" />
+        <Token name="Function Names" type="NORMAL" regex="\bfunction\b[\t ]*([a-zA-Z_][\w]*)\(" lightStyle="21" darkStyle="22" />
+        <Token name="Strings" type="NORMAL" regex='\"[^\"]*\"' lightStyle="23" darkStyle="24" />
+        <Token name="Line Comments" type="NORMAL" regex="//[^\n\r]*" lightStyle="25" darkStyle="26" />
+        <Token name="Block Comments" type="NORMAL" regex="/\*[\s\S]*?\*/" lightStyle="27" darkStyle="28" />
+        <Token name="Header ID Key" type="NORMAL" regex="(^|\n|\r)//[ \t]*(#ID)[ \t]*=[ \t]*\d+[ \t]*(\n|\r|$)" lightStyle="29" darkStyle="30" />
+        <Token name="Header ID Value" type="NORMAL" regex="(^|\n|\r)//[ \t]*#ID[ \t]*=[ \t]*(\d+)[ \t]*(\n|\r|$)" lightStyle="31" darkStyle="36" />
+        <Token name="Header MinimumVersion Key" type="NORMAL" regex="(^|\n|\r)//[ \t]*(#MinimumVersion)[ \t]*=[ \t]*\d+(\.\d)?[ \t]*(\n|\r|$)" lightStyle="38" darkStyle="39" />
+        <Token name="Header MinimumVersion Value" type="NORMAL" regex="(^|\n|\r)//[ \t]*#MinimumVersion[ \t]*=[ \t]*(\d+(\.\d)?)[ \t]*(\n|\r|$)" lightStyle="40" darkStyle="41" />
     </RAScript>
 </NotepadPlus>
 )<NPP_RASCRIPT>";

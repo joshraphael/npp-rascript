@@ -21,14 +21,14 @@ struct Token
     std::string regex;
 };
 
-Token getToken(tinyxml2::XMLElement *e)
+Token getToken(tinyxml2::XMLElement *e, std::string modeKey)
 {
     Token t;
     t.initialized = false;
     const char *nameAttr = e->Attribute("name");
     const char *typeAttr = e->Attribute("type");
     int style;
-    tinyxml2::XMLError eResult = e->QueryIntAttribute("style", &style);
+    tinyxml2::XMLError eResult = e->QueryIntAttribute(modeKey.c_str(), &style);
     if (nameAttr != NULL && typeAttr != NULL && eResult == tinyxml2::XML_SUCCESS)
     {
         std::string name = nameAttr;
@@ -65,8 +65,13 @@ Token getToken(tinyxml2::XMLElement *e)
     return t;
 }
 
-int *ParseFile(tinyxml2::XMLElement *config, int length, std::string text)
+int *ParseFile(tinyxml2::XMLElement *config, bool darkModeEnabled, int length, std::string text)
 {
+    std::string modeKey = "lightStyle";
+    if (darkModeEnabled)
+    {
+        modeKey = "darkStyle";
+    }
     int *styles = new int[length];
     for (int i = 0; i < length; i++)
     {
@@ -76,7 +81,7 @@ int *ParseFile(tinyxml2::XMLElement *config, int length, std::string text)
     int len = 0;
     for (tinyxml2::XMLElement *e = config->FirstChildElement("Token"); e != NULL; e = e->NextSiblingElement("Token"))
     {
-        Token token = getToken(e);
+        Token token = getToken(e, modeKey);
         if (token.initialized)
         {
             tokens[len] = token;
