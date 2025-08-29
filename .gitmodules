@@ -4,3 +4,6 @@
 [submodule "src/tinyxml2"]
 	path = src/tinyxml2
 	url = https://github.com/leethomason/tinyxml2.git
+[submodule "src/regex"]
+	path = src/regex
+	url = https://github.com/boostorg/regex.git
