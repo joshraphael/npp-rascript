@@ -71,11 +71,8 @@ void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc,
     StyleContext sc(startPos, lengthDoc, initStyle, styler);
 
     COLORREF bgColor = ::SendMessage(nppData._nppHandle, NPPM_GETEDITORDEFAULTBACKGROUNDCOLOR, 0, 0);
-    // std::stringstream backgroundColor;
-    // backgroundColor << std::hex << bgColor;
-    // std::string str_value = backgroundColor.str();
-    // DBUG(L"backgroundColor");
-    // DBUG(str_value.c_str());
+
+    bool darkModeEnabled = ::SendMessageW(nppData._nppHandle, NPPM_ISDARKMODEENABLED, 0, 0);
 
     TCHAR configPath[MAX_PATH];
     ::SendMessage(nppData._nppHandle, NPPM_GETPLUGINSCONFIGDIR, MAX_PATH, (LPARAM)configPath);
@@ -92,7 +89,7 @@ void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc,
     tinyxml2::XMLElement *configNode = configDoc.RootElement()->FirstChildElement("RAScript");
     Sci_PositionU lenDef = d.len;
 
-    int *styles = ParseFile(configNode, d.len, d.text);
+    int *styles = ParseFile(configNode, darkModeEnabled, d.len, d.text);
     std::unordered_map<int, bool> stylesUpdated;
     int found = 0;
     for (;; sc.Forward())

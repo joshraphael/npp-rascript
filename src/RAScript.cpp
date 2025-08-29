@@ -129,7 +129,6 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 	}
 	case NPPN_DARKMODECHANGED:
 	{
-		DBUG("DARK MODE CHANGED");
 		int which = -1;
 		::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
 		if (which != -1)

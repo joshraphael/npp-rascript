@@ -25,23 +25,22 @@ std::string config_contents = R"<NPP_RASCRIPT>(
         </LexerType>
     </LexerStyles>
     <RAScript>
-        <Token name="Block Comments" type="DELIMETER" start="/*" end="*/" style="4" />
-        <Token name="Variable Usage" type="NORMAL" regex="([a-zA-Z_][\w]*)[\t ]*" style="7" />
-        <Token name="Variable Assignment" type="NORMAL" regex="([a-zA-Z_][\w]*)[\t ]*=" style="6" />
-        <Token name="Controls" type="NORMAL" regex="\b(if|else|for|in|return)\b" style="4" />
-        <Token name="Booleans" type="NORMAL" regex="\b(true|false|this)\b" style="2" />
-        <Token name="Decimals" type="NORMAL" regex="\b[0-9]+\b" style="3" />
-        <Token name="Hex" type="NORMAL" regex="\b(0x[a-fA-F0-9]+)\b" style="3" />
-        <Token name="Class" type="NORMAL" regex="(\bclass\b)[\t ]*[a-zA-Z_][\w]*" style="3" />
-        <Token name="Class Name" type="NORMAL" regex="\bclass\b[\t ]*([a-zA-Z_][\w]*)" style="2" />
-        <Token name="Function" type="NORMAL" regex="(\bfunction\b)[\t ]*[a-zA-Z_][\w]*\(" style="3" />
-        <Token name="Function Calls" type="NORMAL" regex="([a-zA-Z_][\w]*)\(" style="5" />
-        <Token name="Function Names" type="NORMAL" regex="\bfunction\b[\t ]*([a-zA-Z_][\w]*)\(" style="4" />
-        <Token name="Strings" type="NORMAL" regex='\"[^\"]*\"' style="8" />
-        <Token name="Line Comments" type="NORMAL" regex="//[^\n\r]*" style="1" />
-        <Token name="Block Comments" type="NORMAL" regex="/\*[\s\S]*?\*/" style="1" />
-        <Token name="Header ID Name" type="NORMAL" regex="(^|\n|\r)//[ \t]*(#ID)[ \t]*=[ \t]*\d+[ \t]*(\n|\r|$)" style="2" />
-        <Token name="Header ID Number" type="NORMAL" regex="(^|\n|\r)//[ \t]*#ID[ \t]*=[ \t]*(\d+)[ \t]*(\n|\r|$)" style="3" />
+        <Token name="Variable Usage" type="NORMAL" regex="([a-zA-Z_][\w]*)[\t ]*" lightStyle="7" darkStyle="7" />
+        <Token name="Variable Assignment" type="NORMAL" regex="([a-zA-Z_][\w]*)[\t ]*=" lightStyle="6" darkStyle="6" />
+        <Token name="Controls" type="NORMAL" regex="\b(if|else|for|in|return)\b" lightStyle="4" darkStyle="4" />
+        <Token name="Booleans" type="NORMAL" regex="\b(true|false|this)\b" lightStyle="2" darkStyle="2" />
+        <Token name="Decimals" type="NORMAL" regex="\b[0-9]+\b" lightStyle="3" darkStyle="3" />
+        <Token name="Hex" type="NORMAL" regex="\b(0x[a-fA-F0-9]+)\b" lightStyle="3" darkStyle="3" />
+        <Token name="Class" type="NORMAL" regex="(\bclass\b)[\t ]*[a-zA-Z_][\w]*" lightStyle="3" darkStyle="3" />
+        <Token name="Class Name" type="NORMAL" regex="\bclass\b[\t ]*([a-zA-Z_][\w]*)" lightStyle="2" darkStyle="2" />
+        <Token name="Function" type="NORMAL" regex="(\bfunction\b)[\t ]*[a-zA-Z_][\w]*\(" lightStyle="3" darkStyle="3" />
+        <Token name="Function Calls" type="NORMAL" regex="([a-zA-Z_][\w]*)\(" lightStyle="5" darkStyle="5" />
+        <Token name="Function Names" type="NORMAL" regex="\bfunction\b[\t ]*([a-zA-Z_][\w]*)\(" lightStyle="4" darkStyle="4" />
+        <Token name="Strings" type="NORMAL" regex='\"[^\"]*\"' lightStyle="8" darkStyle="8" />
+        <Token name="Line Comments" type="NORMAL" regex="//[^\n\r]*" lightStyle="1" darkStyle="1" />
+        <Token name="Block Comments" type="NORMAL" regex="/\*[\s\S]*?\*/" lightStyle="1" darkStyle="1" />
+        <Token name="Header ID Name" type="NORMAL" regex="(^|\n|\r)//[ \t]*(#ID)[ \t]*=[ \t]*\d+[ \t]*(\n|\r|$)" lightStyle="2" darkStyle="2" />
+        <Token name="Header ID Number" type="NORMAL" regex="(^|\n|\r)//[ \t]*#ID[ \t]*=[ \t]*(\d+)[ \t]*(\n|\r|$)" lightStyle="3" darkStyle="3" />
     </RAScript>
 </NotepadPlus>
 )<NPP_RASCRIPT>";
