@@ -55,21 +55,23 @@ std::string config_contents = R"<NPP_RASCRIPT>(
             <WordsStyle name="LIGHT-BLOCK-COMMENTS" styleID="27" fgColor="515151" />
             <WordsStyle name="DARK-BLOCK-COMMENTS" styleID="28" fgColor="6A9955" />
 
-            <WordsStyle name="LIGHT-HEADER-ID-KEY" styleID="29" fgColor="515151" />
+            <WordsStyle name="LIGHT-HEADER-ID-KEY" styleID="29" fgColor="0F4A85" />
             <WordsStyle name="DARK-HEADER-ID-KEY" styleID="30" fgColor="569CD6" />
 
             <WordsStyle name="LIGHT-HEADER-ID-VALUE" styleID="31" fgColor="096D48" />
-            <!-- styleID 32 is reserved, do not use -->
-            <WordsStyle name="DARK-HEADER-ID-VALUE" styleID="33" fgColor="B5CEA8" />
+            <!-- styleIDs 32, 33, 34, 35 are reserved, do not use -->
+            <WordsStyle name="DARK-HEADER-ID-VALUE" styleID="36" fgColor="B5CEA8" />
 
-            <WordsStyle name="LIGHT-HEADER-MINIMUMVERSION-KEY" styleID="34" fgColor="515151" />
-            <WordsStyle name="DARK-HEADER-MINIMUMVERSION-KEY" styleID="35" fgColor="569CD6" />
+            <!-- styleIDs 37 are reserved, do not use -->
+            <WordsStyle name="LIGHT-HEADER-MINIMUMVERSION-KEY" styleID="38" fgColor="0F4A85" />
+            <WordsStyle name="DARK-HEADER-MINIMUMVERSION-KEY" styleID="39" fgColor="569CD6" />
 
-            <WordsStyle name="LIGHT-HEADER-MINIMUMVERSION-VALUE" styleID="36" fgColor="096D48" />
-            <WordsStyle name="DARK-HEADER-MINIMUMVERSION-VALUE" styleID="37" fgColor="B5CEA8" />
+            <WordsStyle name="LIGHT-HEADER-MINIMUMVERSION-VALUE" styleID="40" fgColor="096D48" />
+            <WordsStyle name="DARK-HEADER-MINIMUMVERSION-VALUE" styleID="41" fgColor="B5CEA8" />
         </LexerType>
     </LexerStyles>
     <RAScript>
+        <Token name="Variables" type="NORMAL" regex="([a-zA-Z_][\w]*)[\t ]*" lightStyle="1" darkStyle="2" />
         <Token name="Controls" type="NORMAL" regex="\b(if|else|for|in|return)\b" lightStyle="3" darkStyle="4" />
         <Token name="This" type="NORMAL" regex="\b(this)\b" lightStyle="5" darkStyle="6" />
         <Token name="Booleans" type="NORMAL" regex="\b(true|false)\b" lightStyle="7" darkStyle="8" />
@@ -84,9 +86,9 @@ std::string config_contents = R"<NPP_RASCRIPT>(
         <Token name="Line Comments" type="NORMAL" regex="//[^\n\r]*" lightStyle="25" darkStyle="26" />
         <Token name="Block Comments" type="NORMAL" regex="/\*[\s\S]*?\*/" lightStyle="27" darkStyle="28" />
         <Token name="Header ID Key" type="NORMAL" regex="(^|\n|\r)//[ \t]*(#ID)[ \t]*=[ \t]*\d+[ \t]*(\n|\r|$)" lightStyle="29" darkStyle="30" />
-        <Token name="Header ID Value" type="NORMAL" regex="(^|\n|\r)//[ \t]*#ID[ \t]*=[ \t]*(\d+)[ \t]*(\n|\r|$)" lightStyle="31" darkStyle="32" />
-        <Token name="Header MinimumVersion Key" type="NORMAL" regex="(^|\n|\r)//[ \t]*(#MinimumVersion)[ \t]*=[ \t]*\d+(\.\d)?[ \t]*(\n|\r|$)" lightStyle="33" darkStyle="34" />
-        <Token name="Header MinimumVersion Value" type="NORMAL" regex="(^|\n|\r)//[ \t]*#MinimumVersion[ \t]*=[ \t]*(\d+(\.\d)?)[ \t]*(\n|\r|$)" lightStyle="35" darkStyle="36" />
+        <Token name="Header ID Value" type="NORMAL" regex="(^|\n|\r)//[ \t]*#ID[ \t]*=[ \t]*(\d+)[ \t]*(\n|\r|$)" lightStyle="31" darkStyle="36" />
+        <Token name="Header MinimumVersion Key" type="NORMAL" regex="(^|\n|\r)//[ \t]*(#MinimumVersion)[ \t]*=[ \t]*\d+(\.\d)?[ \t]*(\n|\r|$)" lightStyle="38" darkStyle="39" />
+        <Token name="Header MinimumVersion Value" type="NORMAL" regex="(^|\n|\r)//[ \t]*#MinimumVersion[ \t]*=[ \t]*(\d+(\.\d)?)[ \t]*(\n|\r|$)" lightStyle="40" darkStyle="41" />
     </RAScript>
 </NotepadPlus>
 )<NPP_RASCRIPT>";
