@@ -101,7 +101,6 @@ void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc,
             {
                 if (style != 0)
                 {
-                    DBUG(L"STYLE: " << style << L", POS: " << sc.currentPos << L", LINE: " << sc.currentLine << L", FOUND: " << found);
                     found++;
                 }
             }
@@ -119,7 +118,6 @@ void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc,
         }
     }
     sc.Complete();
-    DBUG(L"COMPLETE");
     delete[] styles;
     styles = nullptr;
     styler.Flush();
