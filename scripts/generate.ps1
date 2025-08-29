@@ -25,9 +25,9 @@ $version = git describe --always --dirty
 $major = "0"
 $minor = "0"
 $patch = "0"
-$syntaxUrl = "https://github.com/joshraphael/rascript-syntax/releases/download/$Env:RASCRIPT_SYNTAX_VERSION/rascript.tmLanguage"
-Invoke-WebRequest -Uri $syntaxUrl -OutFile "temp\rascript.tmLanguage"
-$rascriptNppSyntax = Get-Content -Path "temp\rascript.tmLanguage" -Raw
+$syntaxUrl = "https://github.com/joshraphael/rascript-syntax/releases/download/$Env:RASCRIPT_SYNTAX_VERSION/RAScript.xml"
+Invoke-WebRequest -Uri $syntaxUrl -OutFile "temp\RAScript.xml"
+$rascriptNppSyntax = Get-Content -Path "temp\RAScript.xml" -Raw
 
 if(($Env:GITHUB_REF_TYPE -eq "tag") -and ($Env:GITHUB_REF_NAME -ne "") -and ($Env:GITHUB_REF_NAME.StartsWith("v"))) {
     $version = $Env:GITHUB_REF_NAME.Substring(1) # remove the leading v
