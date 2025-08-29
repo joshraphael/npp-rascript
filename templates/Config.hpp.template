@@ -55,11 +55,17 @@ std::string config_contents = R"<NPP_RASCRIPT>(
             <WordsStyle name="LIGHT-BLOCK-COMMENTS" styleID="27" fgColor="515151" />
             <WordsStyle name="DARK-BLOCK-COMMENTS" styleID="28" fgColor="6A9955" />
 
-            <WordsStyle name="LIGHT-HEADER-ID-KEY" styleID="29" fgColor="515151" />
+            <!-- <WordsStyle name="LIGHT-HEADER-ID-KEY" styleID="29" fgColor="515151" />
             <WordsStyle name="DARK-HEADER-ID-KEY" styleID="30" fgColor="569CD6" />
 
             <WordsStyle name="LIGHT-HEADER-ID-VALUE" styleID="31" fgColor="096D48" />
             <WordsStyle name="DARK-HEADER-ID-VALUE" styleID="32" fgColor="B5CEA8" />
+
+            <WordsStyle name="LIGHT-HEADER-MINIMUMVERSION-KEY" styleID="33" fgColor="515151" />
+            <WordsStyle name="DARK-HEADER-MINIMUMVERSION-KEY" styleID="34" fgColor="569CD6" />
+
+            <WordsStyle name="LIGHT-HEADER-MINIMUMVERSION-VALUE" styleID="35" fgColor="096D48" />
+            <WordsStyle name="DARK-HEADER-MINIMUMVERSION-VALUE" styleID="36" fgColor="B5CEA8" /> -->
         </LexerType>
     </LexerStyles>
     <RAScript>
@@ -68,7 +74,7 @@ std::string config_contents = R"<NPP_RASCRIPT>(
         <Token name="This" type="NORMAL" regex="\b(this)\b" lightStyle="5" darkStyle="6" />
         <Token name="Booleans" type="NORMAL" regex="\b(true|false)\b" lightStyle="7" darkStyle="8" />
         <Token name="Decimals" type="NORMAL" regex="\b[0-9]+\b" lightStyle="9" darkStyle="10" />
-        <Token name="Hex" type="NORMAL" regex="\b(0x[a-fA-F0-9]+)\b" lightStyle="11" darkStyle="12" />
+        <Token name="Hexadecimals" type="NORMAL" regex="\b(0x[a-fA-F0-9]+)\b" lightStyle="11" darkStyle="12" />
         <Token name="Class" type="NORMAL" regex="(\bclass\b)[\t ]*[a-zA-Z_][\w]*" lightStyle="13" darkStyle="14" />
         <Token name="Class Name" type="NORMAL" regex="\bclass\b[\t ]*([a-zA-Z_][\w]*)" lightStyle="15" darkStyle="16" />
         <Token name="Function" type="NORMAL" regex="(\bfunction\b)[\t ]*[a-zA-Z_][\w]*\(" lightStyle="17" darkStyle="18" />
@@ -77,8 +83,10 @@ std::string config_contents = R"<NPP_RASCRIPT>(
         <Token name="Strings" type="NORMAL" regex='\"[^\"]*\"' lightStyle="23" darkStyle="24" />
         <Token name="Line Comments" type="NORMAL" regex="//[^\n\r]*" lightStyle="25" darkStyle="26" />
         <Token name="Block Comments" type="NORMAL" regex="/\*[\s\S]*?\*/" lightStyle="27" darkStyle="28" />
-        <Token name="Header ID Name" type="NORMAL" regex="(^|\n|\r)//[ \t]*(#ID)[ \t]*=[ \t]*\d+[ \t]*(\n|\r|$)" lightStyle="29" darkStyle="30" />
-        <Token name="Header ID Number" type="NORMAL" regex="(^|\n|\r)//[ \t]*#ID[ \t]*=[ \t]*(\d+)[ \t]*(\n|\r|$)" lightStyle="31" darkStyle="32" />
+        <!-- <Token name="Header ID Key" type="NORMAL" regex="(^|\n|\r)//[ \t]*(#ID)[ \t]*=[ \t]*\d+[ \t]*(\n|\r|$)" lightStyle="29" darkStyle="30" />
+        <Token name="Header ID Value" type="NORMAL" regex="(^|\n|\r)//[ \t]*#ID[ \t]*=[ \t]*(\d+)[ \t]*(\n|\r|$)" lightStyle="31" darkStyle="32" />
+        <Token name="Header MinimumVersion Key" type="NORMAL" regex="(^|\n|\r)//[ \t]*(#MinimumVersion)[ \t]*=[ \t]*\d+(\.\d)?[ \t]*(\n|\r|$)" lightStyle="33" darkStyle="34" />
+        <Token name="Header MinimumVersion Value" type="NORMAL" regex="(^|\n|\r)//[ \t]*#MinimumVersion[ \t]*=[ \t]*(\d+(\.\d)?)[ \t]*(\n|\r|$)" lightStyle="35" darkStyle="36" /> -->
     </RAScript>
 </NotepadPlus>
 )<NPP_RASCRIPT>";

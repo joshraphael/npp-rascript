@@ -12,12 +12,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Split light and dark themes
+- Syntax highlighting config tokens for: header MinimumVersion
 
 ### Changed
 
 - Improved styling for each mode
 
 ### Removed
+
+- Disabled header token evaluation (not performant)
 
 ## [[0.3.0](https://github.com/joshraphael/npp-rascript/releases/tag/v0.3.0)] - 2025-08-28
 
