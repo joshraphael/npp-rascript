@@ -151,7 +151,11 @@ extern "C" __declspec(dllexport) LexerFactoryFunction SCI_METHOD GetLexerFactory
     return (index == 0) ? LexRAScript::LexerFactory : nullptr;
 }
 
-extern "C" __declspec(dllexport) Scintilla::ILexer5 *SCI_METHOD CreateLexer(const char * /* name */)
+extern "C" __declspec(dllexport) Scintilla::ILexer5 *SCI_METHOD CreateLexer(const char *name)
 {
-    return LexRAScript::LexerFactory();
+    if (strcmp(name, "RAScript") == 0)
+    {
+        return LexRAScript::LexerFactory();
+    }
+    return nullptr;
 }

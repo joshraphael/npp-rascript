@@ -127,7 +127,9 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 		commandMenuCleanUp();
 		break;
 	}
-	case NPPN_DARKMODECHANGED:
+	case NPPN_DARKMODECHANGED:	 // dark mode activated
+	case NPPN_BUFFERACTIVATED:	 // change tabs
+	case NPPN_WORDSTYLESUPDATED: // style config change
 	{
 		int which = -1;
 		::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
@@ -136,8 +138,8 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 			HWND curScintilla = (which == 0) ? nppData._scintillaMainHandle : nppData._scintillaSecondHandle;
 			::SendMessage(curScintilla, SCI_COLOURISE, 0, -1); // restyle entire document
 		}
+		break;
 	}
-
 	default:
 		return;
 	}
