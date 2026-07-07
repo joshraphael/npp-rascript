@@ -1,7 +1,7 @@
-export NPP_VERSION := v8.8.7
+export NPP_VERSION := v8.9.6.4
 export TINYXML2_VERSION := 11.0.0
-export BOOSTREGEX_VERSION := boost-1.89.0
-export RASCRIPT_SYNTAX_VERSION := v0.3.0
+export BOOSTREGEX_VERSION := boost-1.91.0
+export RASCRIPT_SYNTAX_VERSION := v0.4.2
 
 deps:
 	sudo apt-get install gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64 gcc-mingw-w64-i686 g++-mingw-w64-i686
