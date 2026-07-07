@@ -16,7 +16,7 @@ jobs:
         build_platform: [x64, Win32]
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Plugin Dependencies
         run: make deps
@@ -25,7 +25,7 @@ jobs:
         run: make compile-${{ matrix.build_platform }}
 
   test-win:
-    runs-on: windows-latest
+    runs-on: windows-2022 # Ensures Visual Studio 2022 (v143) tools are present
     needs: test-linux
     strategy:
       max-parallel: 6
@@ -36,34 +36,34 @@ jobs:
     steps:
 
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup NPP Dependencies
         run: make generate-win
 
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v2
+        uses: microsoft/setup-msbuild@v3
 
       - name: MSBuild of plugin dll
         run: msbuild RAScript.vcxproj /m /p:configuration="${{ matrix.build_configuration }}" /p:platform="${{ matrix.build_platform }}"
 
       - name: Archive artifacts for x64
         if: matrix.build_platform == 'x64' && matrix.build_configuration == 'Release'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: RAScript_x64
           path: bin64\RAScript.dll
 
       - name: Archive artifacts for Win32
         if: matrix.build_platform == 'Win32' && matrix.build_configuration == 'Release'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: RAScript_x86
           path: bin\RAScript.dll
 
       - name: Archive artifacts for ARM64
         if: matrix.build_platform == 'ARM64' && matrix.build_configuration == 'Release'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: RAScript_arm64
           path: arm64\RAScript.dll
