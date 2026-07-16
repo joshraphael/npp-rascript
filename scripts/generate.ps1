@@ -1,5 +1,5 @@
 # Example running this file:
-# $env:NPP_VERSION = 'v8.8.5'; $env:RASCRIPT_SYNTAX_VERSION = 'v0.0.3'; $env:TINYXML2_VERSION = '11.0.0'; $env:BOOSTREGEX_VERSION = 'boost-1.89.0'; .\scripts\generate.ps1
+# $env:NPP_VERSION = 'v8.9.6.4'; $env:RASCRIPT_SYNTAX_VERSION = 'v0.4.2'; $env:TINYXML2_VERSION = '11.0.0'; $env:BOOSTREGEX_VERSION = 'boost-1.91.0'; .\scripts\generate.ps1
 
 Remove-Item -Path "out" -Force -ErrorAction SilentlyContinue
 New-Item -Name "out" -ItemType Directory
