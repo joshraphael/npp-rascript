@@ -171,12 +171,12 @@ int *ParseFile(tinyxml2::XMLElement *config, bool darkModeEnabled, int length, s
         }
     }
     // Copy each UTF-16 unit's style to the bytes it came from (byteOf[i] up to
-    // byteOf[i + 1]), shifted one position the way the lexer reads them
+    // byteOf[i + 1]), so styles[b] is the style of byte b
     for (size_t i = 0; i < stylePerUnit.size(); i++)
     {
         for (int b = byteOf[i]; stylePerUnit[i] != 0 && b < byteOf[i + 1]; b++)
         {
-            styles[b + 1] = stylePerUnit[i];
+            styles[b] = stylePerUnit[i];
         }
     }
     delete[] tokens;
