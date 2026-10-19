@@ -1,6 +1,10 @@
 #ifndef RASCRIPT_HPP
 #define RASCRIPT_HPP
 
+#include <windows.h>
+
+#include "PluginInterface.h"
+
 void pluginInit(HANDLE hModule);
 void pluginCleanUp();
 void commandMenuInit();

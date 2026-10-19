@@ -1,0 +1,17 @@
+If:
+  PathMatch: src/[^/]*
+CompileFlags:
+  Add:
+    - -xc++
+    - -std=c++17
+    - --target=x86_64-w64-mingw32
+    - -DUNICODE
+    - -DDEBUG
+    - -DBOOST_REGEX_STANDALONE
+    - -Itinyxml2
+    - -Iregex/include
+    - -Inotepad-plus-plus/scintilla/include
+    - -Inotepad-plus-plus/lexilla/include
+    - -Inotepad-plus-plus/lexilla/lexlib
+    - -Inotepad-plus-plus/PowerEditor/src
+    - -Inotepad-plus-plus/PowerEditor/src/MISC/PluginsManager
