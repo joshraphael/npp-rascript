@@ -1,6 +1,7 @@
 #ifndef LEXRASCRIPT_HPP
 #define LEXRASCRIPT_HPP
 
+#include <stdint.h>
 #include "ILexer.h"
 #include "LexerModule.h"
 #include "DefaultLexer.h"
