@@ -87,35 +87,29 @@ void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc,
         return;
     }
     tinyxml2::XMLElement *configNode = configDoc.RootElement()->FirstChildElement("RAScript");
-    Sci_PositionU lenDef = d.len;
 
     int *styles = ParseFile(configNode, darkModeEnabled, d.len, d.text);
     std::unordered_map<int, bool> stylesUpdated;
     int found = 0;
-    for (;; sc.Forward())
+    // styles[p] is the style of byte p. SetState colors everything since the
+    // last SetState with the previous style, then starts the new one here;
+    // Complete colors the last stretch, up to the end of the document
+    for (; sc.More(); sc.Forward())
     {
-        if (sc.currentPos < lenDef)
+        int style = styles[sc.currentPos];
+        if (found < 10)
         {
-            int style = styles[sc.currentPos];
-            if (found < 10)
+            if (style != 0)
             {
-                if (style != 0)
-                {
-                    found++;
-                }
+                found++;
             }
-            if (!stylesUpdated.count(style))
-            {
-                ::SendMessage(curScintilla, SCI_STYLESETBACK, style, (LPARAM)bgColor);
-                stylesUpdated[style] = true;
-            }
-            sc.ChangeState(style);
         }
-        sc.SetState(0); // Needed for some reason, do not remove
-        if (!sc.More())
+        if (!stylesUpdated.count(style))
         {
-            break;
+            ::SendMessage(curScintilla, SCI_STYLESETBACK, style, (LPARAM)bgColor);
+            stylesUpdated[style] = true;
         }
+        sc.SetState(style);
     }
     sc.Complete();
     delete[] styles;
