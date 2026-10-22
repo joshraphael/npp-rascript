@@ -127,6 +127,31 @@ std::wstring toUtf16(const std::string &text)
     return toUtf16(text, byteOf);
 }
 
+void styleMatch(const Token &token, const boost::wsmatch &m, std::wstring::const_iterator begin, std::vector<int> &stylePerUnit)
+{
+    int numGroups = static_cast<int>(m.size());
+    std::vector<std::pair<int, int>> groups = token.groups;
+    if (groups.empty())
+    {
+        for (int j = numGroups > 1 ? 1 : 0; j < numGroups; j++)
+        {
+            groups.push_back(std::make_pair(j, token.style));
+        }
+    }
+    for (size_t g = 0; g < groups.size(); g++)
+    {
+        int j = groups[g].first;
+        if (j < 0 || j >= numGroups || !m[j].matched)
+        {
+            continue;
+        }
+        for (ptrdiff_t k = m[j].first - begin; k < m[j].second - begin; k++)
+        {
+            stylePerUnit[k] = groups[g].second;
+        }
+    }
+}
+
 int *ParseFile(tinyxml2::XMLElement *config, bool darkModeEnabled, int length, std::string text)
 {
     std::string modeKey = "lightStyle";
@@ -155,52 +180,47 @@ int *ParseFile(tinyxml2::XMLElement *config, bool darkModeEnabled, int length, s
     std::vector<int> byteOf;
     std::wstring wideText = toUtf16(text, byteOf);
     std::vector<int> stylePerUnit(wideText.size(), 0);
+    
+    std::vector<const Token *> scanned;
+    std::vector<boost::wregex> patterns;
     for (int i = 0; i < len; i++)
     {
-        Token token = tokens[i];
-        if (token.type == "NORMAL")
+        if (tokens[i].type == "NORMAL")
         {
-            boost::wregex pattern(toUtf16(token.regex));
-            boost::wsregex_iterator it(wideText.begin(), wideText.end(), pattern);
-            boost::wsregex_iterator end;
-            for (; it != end; ++it)
+            scanned.push_back(&tokens[i]);
+            patterns.push_back(boost::wregex(toUtf16(tokens[i].regex)));
+        }
+    }
+    const std::wstring::const_iterator begin = wideText.begin();
+    std::vector<boost::wsmatch> next(patterns.size());
+    std::vector<bool> searched(patterns.size(), false);
+    std::vector<bool> found(patterns.size(), false);
+    for (ptrdiff_t p = 0; p < static_cast<ptrdiff_t>(wideText.size());)
+    {
+        int best = -1;
+        for (size_t t = 0; t < patterns.size(); t++)
+        {
+            if (!searched[t] || (found[t] && next[t][0].first - begin < p))
             {
-                boost::wsmatch m = *it;
-                int numGroups = static_cast<int>(m.size());
-                if (!token.groups.empty()) // only the listed groups, each with its own style
+                boost::match_flag_type flags = boost::match_not_null;
+                if (p > 0)
                 {
-                    for (size_t g = 0; g < token.groups.size(); g++)
-                    {
-                        int j = token.groups[g].first;
-                        if (j < 0 || j >= numGroups || !m[j].matched)
-                        {
-                            continue;
-                        }
-                        for (ptrdiff_t k = m.position(j); k < m.position(j) + m.length(j); k++)
-                        {
-                            stylePerUnit[k] = token.groups[g].second;
-                        }
-                    }
+                    flags |= boost::match_prev_avail;
                 }
-                else if (numGroups > 1) // regex contains groups, need to parse each group and stylize them appropriately
-                {
-                    for (int j = 1; j < numGroups; j++)
-                    {
-                        for (ptrdiff_t k = m.position(j); m[j].matched && k < m.position(j) + m.length(j); k++)
-                        {
-                            stylePerUnit[k] = token.style;
-                        }
-                    }
-                }
-                else // regex contains no groups, just stylize the matched string
-                {
-                    for (ptrdiff_t k = m.position(); k < m.position() + m.length(); k++)
-                    {
-                        stylePerUnit[k] = token.style;
-                    }
-                }
+                found[t] = boost::regex_search(begin + p, wideText.cend(), next[t], patterns[t], flags);
+                searched[t] = true;
+            }
+            if (found[t] && (best < 0 || next[t][0].first < next[best][0].first))
+            {
+                best = static_cast<int>(t);
             }
         }
+        if (best < 0)
+        {
+            break;
+        }
+        styleMatch(*scanned[best], next[best], begin, stylePerUnit);
+        p = next[best][0].second - begin; // never empty, so the scan always moves forward
     }
     // Copy each UTF-16 unit's style to the bytes it came from (byteOf[i] up to
     // byteOf[i + 1]), so styles[b] is the style of byte b
