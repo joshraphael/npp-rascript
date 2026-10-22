@@ -127,63 +127,62 @@ std::wstring toUtf16(const std::string &text)
     return toUtf16(text, byteOf);
 }
 
-void styleMatch(const Token &token, const boost::wsmatch &m, std::wstring::const_iterator begin, std::vector<int> &stylePerUnit)
+struct Scanner
 {
-    int numGroups = static_cast<int>(m.size());
-    std::vector<std::pair<int, int>> groups = token.groups;
-    if (groups.empty())
+    std::vector<const Token *> tokens;
+    std::vector<int> offsets;
+    std::vector<int> markCounts;
+    boost::wregex combined;
+};
+
+void styleMatch(const Token &token, const boost::wsmatch &m, int offset, int markCount, std::wstring::const_iterator begin, std::vector<int> &lineStyles)
+{
+    if (token.groups.empty())
     {
-        for (int j = numGroups > 1 ? 1 : 0; j < numGroups; j++)
+        for (int j = markCount > 0 ? 1 : 0; j <= markCount; j++)
         {
-            groups.push_back(std::make_pair(j, token.style));
+            for (ptrdiff_t k = m[offset + j].first - begin; m[offset + j].matched && k < m[offset + j].second - begin; k++)
+            {
+                lineStyles[k] = token.style;
+            }
         }
+        return;
     }
-    for (size_t g = 0; g < groups.size(); g++)
+    for (size_t g = 0; g < token.groups.size(); g++)
     {
-        int j = groups[g].first;
-        if (j < 0 || j >= numGroups || !m[j].matched)
+        int j = token.groups[g].first;
+        if (j < 0 || j > markCount || !m[offset + j].matched)
         {
             continue;
         }
-        for (ptrdiff_t k = m[j].first - begin; k < m[j].second - begin; k++)
+        for (ptrdiff_t k = m[offset + j].first - begin; k < m[offset + j].second - begin; k++)
         {
-            stylePerUnit[k] = groups[g].second;
+            lineStyles[k] = token.groups[g].second;
         }
     }
 }
 
-void scanLine(const std::wstring &line, const std::vector<const Token *> &scanned, const std::vector<boost::wregex> &patterns, std::vector<int> &lineStyles)
+void scanLine(const std::wstring &line, const Scanner &scanner, boost::wsmatch &m, std::vector<int> &lineStyles)
 {
     const std::wstring::const_iterator begin = line.begin();
-    std::vector<boost::wsmatch> next(patterns.size());
-    std::vector<bool> searched(patterns.size(), false);
-    std::vector<bool> found(patterns.size(), false);
     for (ptrdiff_t p = 0; p < static_cast<ptrdiff_t>(line.size());)
     {
-        int best = -1;
-        for (size_t t = 0; t < patterns.size(); t++)
+        boost::match_flag_type flags = boost::match_not_null | boost::match_not_dot_newline; // . never matches \n, like Oniguruma
+        if (p > 0)
         {
-            if (!searched[t] || (found[t] && next[t][0].first - begin < p))
-            {
-                boost::match_flag_type flags = boost::match_not_null | boost::match_not_dot_newline; // . never matches \n, like Oniguruma
-                if (p > 0)
-                {
-                    flags |= boost::match_prev_avail;
-                }
-                found[t] = boost::regex_search(begin + p, line.cend(), next[t], patterns[t], flags);
-                searched[t] = true;
-            }
-            if (found[t] && (best < 0 || next[t][0].first < next[best][0].first))
-            {
-                best = static_cast<int>(t);
-            }
+            flags |= boost::match_prev_avail;
         }
-        if (best < 0)
+        if (!boost::regex_search(begin + p, line.cend(), m, scanner.combined, flags))
         {
             break;
         }
-        styleMatch(*scanned[best], next[best], begin, lineStyles);
-        p = next[best][0].second - begin; // never empty, so the scan always moves forward
+        size_t t = 0;
+        while (!m[scanner.offsets[t]].matched)
+        {
+            t++;
+        }
+        styleMatch(*scanner.tokens[t], m, scanner.offsets[t], scanner.markCounts[t], begin, lineStyles);
+        p = m[0].second - begin; // never empty, so the scan always moves forward
     }
 }
 
@@ -216,19 +215,33 @@ int *ParseFile(tinyxml2::XMLElement *config, bool darkModeEnabled, int length, s
     std::wstring wideText = toUtf16(text, byteOf);
     std::vector<int> stylePerUnit(wideText.size(), 0);
     
-    std::vector<const Token *> scanned;
-    std::vector<boost::wregex> patterns;
+    Scanner scanner;
+    std::wstring combined;
+    int group = 1;
     for (int i = 0; i < len; i++)
     {
         if (tokens[i].type == "NORMAL")
         {
-            scanned.push_back(&tokens[i]);
-            patterns.push_back(boost::wregex(toUtf16(tokens[i].regex)));
+            std::wstring regex = toUtf16(tokens[i].regex);
+            scanner.tokens.push_back(&tokens[i]);
+            scanner.offsets.push_back(group);
+            scanner.markCounts.push_back(static_cast<int>(boost::wregex(regex).mark_count()));
+            group += 1 + scanner.markCounts.back();
+            combined += (combined.empty() ? L"(" : L"|(") + regex + L")";
         }
     }
+    if (scanner.tokens.empty())
+    {
+        delete[] tokens;
+        return styles;
+    }
+    scanner.combined = boost::wregex(combined);
     // Like TextMate, each line is matched on its own: its text without the line
     // break, plus a "\n" whose style is given to the real line break
     const ptrdiff_t size = static_cast<ptrdiff_t>(wideText.size());
+    std::wstring line;
+    std::vector<int> lineStyles;
+    boost::wsmatch m;
     for (ptrdiff_t lineStart = 0; lineStart < size;)
     {
         ptrdiff_t lineEnd = lineStart;
@@ -245,9 +258,10 @@ int *ParseFile(tinyxml2::XMLElement *config, bool darkModeEnabled, int length, s
         {
             breakEnd++;
         }
-        std::wstring line = wideText.substr(lineStart, lineEnd - lineStart) + L"\n";
-        std::vector<int> lineStyles(line.size(), 0);
-        scanLine(line, scanned, patterns, lineStyles);
+        line.assign(wideText, lineStart, lineEnd - lineStart);
+        line += L'\n';
+        lineStyles.assign(line.size(), 0);
+        scanLine(line, scanner, m, lineStyles);
         const ptrdiff_t lineLength = lineEnd - lineStart;
         for (ptrdiff_t k = 0; k < lineLength; k++)
         {
