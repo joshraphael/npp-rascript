@@ -152,6 +152,41 @@ void styleMatch(const Token &token, const boost::wsmatch &m, std::wstring::const
     }
 }
 
+void scanLine(const std::wstring &line, const std::vector<const Token *> &scanned, const std::vector<boost::wregex> &patterns, std::vector<int> &lineStyles)
+{
+    const std::wstring::const_iterator begin = line.begin();
+    std::vector<boost::wsmatch> next(patterns.size());
+    std::vector<bool> searched(patterns.size(), false);
+    std::vector<bool> found(patterns.size(), false);
+    for (ptrdiff_t p = 0; p < static_cast<ptrdiff_t>(line.size());)
+    {
+        int best = -1;
+        for (size_t t = 0; t < patterns.size(); t++)
+        {
+            if (!searched[t] || (found[t] && next[t][0].first - begin < p))
+            {
+                boost::match_flag_type flags = boost::match_not_null | boost::match_not_dot_newline; // . never matches \n, like Oniguruma
+                if (p > 0)
+                {
+                    flags |= boost::match_prev_avail;
+                }
+                found[t] = boost::regex_search(begin + p, line.cend(), next[t], patterns[t], flags);
+                searched[t] = true;
+            }
+            if (found[t] && (best < 0 || next[t][0].first < next[best][0].first))
+            {
+                best = static_cast<int>(t);
+            }
+        }
+        if (best < 0)
+        {
+            break;
+        }
+        styleMatch(*scanned[best], next[best], begin, lineStyles);
+        p = next[best][0].second - begin; // never empty, so the scan always moves forward
+    }
+}
+
 int *ParseFile(tinyxml2::XMLElement *config, bool darkModeEnabled, int length, std::string text)
 {
     std::string modeKey = "lightStyle";
@@ -191,36 +226,38 @@ int *ParseFile(tinyxml2::XMLElement *config, bool darkModeEnabled, int length, s
             patterns.push_back(boost::wregex(toUtf16(tokens[i].regex)));
         }
     }
-    const std::wstring::const_iterator begin = wideText.begin();
-    std::vector<boost::wsmatch> next(patterns.size());
-    std::vector<bool> searched(patterns.size(), false);
-    std::vector<bool> found(patterns.size(), false);
-    for (ptrdiff_t p = 0; p < static_cast<ptrdiff_t>(wideText.size());)
+    // Like TextMate, each line is matched on its own: its text without the line
+    // break, plus a "\n" whose style is given to the real line break
+    const ptrdiff_t size = static_cast<ptrdiff_t>(wideText.size());
+    for (ptrdiff_t lineStart = 0; lineStart < size;)
     {
-        int best = -1;
-        for (size_t t = 0; t < patterns.size(); t++)
+        ptrdiff_t lineEnd = lineStart;
+        while (lineEnd < size && wideText[lineEnd] != L'\r' && wideText[lineEnd] != L'\n')
         {
-            if (!searched[t] || (found[t] && next[t][0].first - begin < p))
-            {
-                boost::match_flag_type flags = boost::match_not_null;
-                if (p > 0)
-                {
-                    flags |= boost::match_prev_avail;
-                }
-                found[t] = boost::regex_search(begin + p, wideText.cend(), next[t], patterns[t], flags);
-                searched[t] = true;
-            }
-            if (found[t] && (best < 0 || next[t][0].first < next[best][0].first))
-            {
-                best = static_cast<int>(t);
-            }
+            lineEnd++;
         }
-        if (best < 0)
+        ptrdiff_t breakEnd = lineEnd;
+        if (breakEnd < size && wideText[breakEnd] == L'\r')
         {
-            break;
+            breakEnd++;
         }
-        styleMatch(*scanned[best], next[best], begin, stylePerUnit);
-        p = next[best][0].second - begin; // never empty, so the scan always moves forward
+        if (breakEnd < size && wideText[breakEnd] == L'\n' && (breakEnd == lineEnd || wideText[lineEnd] == L'\r'))
+        {
+            breakEnd++;
+        }
+        std::wstring line = wideText.substr(lineStart, lineEnd - lineStart) + L"\n";
+        std::vector<int> lineStyles(line.size(), 0);
+        scanLine(line, scanned, patterns, lineStyles);
+        const ptrdiff_t lineLength = lineEnd - lineStart;
+        for (ptrdiff_t k = 0; k < lineLength; k++)
+        {
+            stylePerUnit[lineStart + k] = lineStyles[k];
+        }
+        for (ptrdiff_t k = lineEnd; k < breakEnd; k++)
+        {
+            stylePerUnit[k] = lineStyles[lineLength];
+        }
+        lineStart = breakEnd > lineEnd ? breakEnd : size;
     }
     // Copy each UTF-16 unit's style to the bytes it came from (byteOf[i] up to
     // byteOf[i + 1]), so styles[b] is the style of byte b
