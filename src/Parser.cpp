@@ -1,3 +1,4 @@
+#include <map>
 #include <string>
 #include <utility>
 #include <vector>
@@ -25,6 +26,9 @@ struct Token
     // Optional <Group index="n" lightStyle="..." darkStyle="..." /> children:
     // (capture group, style) pairs, so one token can style each group differently
     std::vector<std::pair<int, int>> groups;
+
+    // A DELIMETER's child <Token>s, matched between its start and end
+    std::vector<Token> children;
 };
 
 Token getToken(tinyxml2::XMLElement *e, std::string modeKey)
@@ -43,14 +47,15 @@ Token getToken(tinyxml2::XMLElement *e, std::string modeKey)
             groups.push_back(std::make_pair(index, groupStyle));
         }
     }
-    // A token's own style is only optional when its groups have styles
+    // A NORMAL token's own style is only optional when its groups have styles. A
+    // DELIMETER's is always optional: without one, it takes its parent's style
     int style = 0;
     tinyxml2::XMLError eResult = e->QueryIntAttribute(modeKey.c_str(), &style);
-    if (nameAttr != NULL && typeAttr != NULL && (eResult == tinyxml2::XML_SUCCESS || !groups.empty()))
+    if (nameAttr != NULL && typeAttr != NULL)
     {
         std::string name = nameAttr;
         std::string type = typeAttr;
-        if (type == "NORMAL")
+        if (type == "NORMAL" && (eResult == tinyxml2::XML_SUCCESS || !groups.empty()))
         {
             const char *regexAttr = e->Attribute("regex");
             if (regexAttr != NULL)
@@ -76,6 +81,14 @@ Token getToken(tinyxml2::XMLElement *e, std::string modeKey)
                 t.style = style;
                 t.start = startAttr;
                 t.end = endAttr;
+                for (tinyxml2::XMLElement *c = e->FirstChildElement("Token"); c != NULL; c = c->NextSiblingElement("Token"))
+                {
+                    Token child = getToken(c, modeKey);
+                    if (child.initialized)
+                    {
+                        t.children.push_back(child);
+                    }
+                }
                 return t;
             }
         }
@@ -135,6 +148,64 @@ struct Scanner
     boost::wregex combined;
 };
 
+// What is matched inside an open DELIMETER: its children (one Scanner) and its
+// end, searched on its own so it can match an empty string ($ or a lookahead)
+struct Region
+{
+    Scanner children;
+    boost::wregex end;
+};
+
+// A NORMAL token is matched by its regex, a DELIMETER by its start
+Scanner buildScanner(const std::vector<const Token *> &tokens)
+{
+    Scanner scanner;
+    std::wstring combined;
+    int group = 1;
+    for (size_t i = 0; i < tokens.size(); i++)
+    {
+        std::wstring regex = toUtf16(tokens[i]->type == "NORMAL" ? tokens[i]->regex : tokens[i]->start);
+        scanner.tokens.push_back(tokens[i]);
+        scanner.offsets.push_back(group);
+        scanner.markCounts.push_back(static_cast<int>(boost::wregex(regex).mark_count()));
+        group += 1 + scanner.markCounts.back();
+        combined += (combined.empty() ? L"(" : L"|(") + regex + L")";
+    }
+    if (!scanner.tokens.empty())
+    {
+        scanner.combined = boost::wregex(combined);
+    }
+    return scanner;
+}
+
+void buildRegions(const std::vector<const Token *> &tokens, std::map<const Token *, Region> &regions)
+{
+    for (size_t i = 0; i < tokens.size(); i++)
+    {
+        if (tokens[i]->type != "DELIMETER" || regions.count(tokens[i]))
+        {
+            continue;
+        }
+        std::vector<const Token *> children;
+        for (size_t c = 0; c < tokens[i]->children.size(); c++)
+        {
+            children.push_back(&tokens[i]->children[c]);
+        }
+        Region &region = regions[tokens[i]];
+        region.children = buildScanner(children);
+        region.end = boost::wregex(toUtf16(tokens[i]->end));
+        buildRegions(children, regions);
+    }
+}
+
+// The begin/end tokens open at the end of a line, carried to the next line,
+// each with the style its text gets (its own, or its parent's when it has none)
+struct OpenRegion
+{
+    const Token *token;
+    int style;
+};
+
 void styleMatch(const Token &token, const boost::wsmatch &m, int offset, int markCount, std::wstring::const_iterator begin, std::vector<int> &lineStyles)
 {
     if (token.groups.empty())
@@ -162,18 +233,44 @@ void styleMatch(const Token &token, const boost::wsmatch &m, int offset, int mar
     }
 }
 
-void scanLine(const std::wstring &line, const Scanner &scanner, boost::wsmatch &m, std::vector<int> &lineStyles)
+void fill(std::vector<int> &lineStyles, ptrdiff_t from, ptrdiff_t to, int style)
+{
+    for (ptrdiff_t k = from; k < to; k++)
+    {
+        lineStyles[k] = style;
+    }
+}
+
+void scanLine(const std::wstring &line, const Scanner &top, const std::map<const Token *, Region> &regions, std::vector<OpenRegion> &open, boost::wsmatch &m, boost::wsmatch &endMatch, std::vector<int> &lineStyles)
 {
     const std::wstring::const_iterator begin = line.begin();
-    for (ptrdiff_t p = 0; p < static_cast<ptrdiff_t>(line.size());)
+    const ptrdiff_t size = static_cast<ptrdiff_t>(line.size());
+    for (ptrdiff_t p = 0; p < size;)
     {
-        boost::match_flag_type flags = boost::match_not_null | boost::match_not_dot_newline; // . never matches \n, like Oniguruma
+        boost::match_flag_type flags = boost::match_not_dot_newline; // . never matches \n, like Oniguruma
         if (p > 0)
         {
             flags |= boost::match_prev_avail;
         }
-        if (!boost::regex_search(begin + p, line.cend(), m, scanner.combined, flags))
+        const int style = open.empty() ? 0 : open.back().style;
+        const Scanner &scanner = open.empty() ? top : regions.at(open.back().token).children;
+        // tokens never match an empty string, so the scan always moves forward
+        bool found = !scanner.tokens.empty() && boost::regex_search(begin + p, line.cend(), m, scanner.combined, flags | boost::match_not_null);
+        if (!open.empty())
         {
+            // inside a region, its end wins a tie with its children
+            const Region &region = regions.at(open.back().token);
+            if (boost::regex_search(begin + p, line.cend(), endMatch, region.end, flags) && (!found || endMatch[0].first <= m[0].first))
+            {
+                fill(lineStyles, p, endMatch[0].second - begin, style);
+                open.pop_back();
+                p = endMatch[0].second - begin;
+                continue;
+            }
+        }
+        if (!found)
+        {
+            fill(lineStyles, p, size, style);
             break;
         }
         size_t t = 0;
@@ -181,8 +278,20 @@ void scanLine(const std::wstring &line, const Scanner &scanner, boost::wsmatch &
         {
             t++;
         }
-        styleMatch(*scanner.tokens[t], m, scanner.offsets[t], scanner.markCounts[t], begin, lineStyles);
-        p = m[0].second - begin; // never empty, so the scan always moves forward
+        const Token &token = *scanner.tokens[t];
+        fill(lineStyles, p, m[0].first - begin, style);
+        if (token.type == "DELIMETER")
+        {
+            OpenRegion region = {&token, token.style != 0 ? token.style : style};
+            fill(lineStyles, m[0].first - begin, m[0].second - begin, region.style);
+            open.push_back(region);
+        }
+        else
+        {
+            fill(lineStyles, m[0].first - begin, m[0].second - begin, style);
+            styleMatch(token, m, scanner.offsets[t], scanner.markCounts[t], begin, lineStyles);
+        }
+        p = m[0].second - begin;
     }
 }
 
@@ -215,33 +324,27 @@ int *ParseFile(tinyxml2::XMLElement *config, bool darkModeEnabled, int length, s
     std::wstring wideText = toUtf16(text, byteOf);
     std::vector<int> stylePerUnit(wideText.size(), 0);
     
-    Scanner scanner;
-    std::wstring combined;
-    int group = 1;
+    std::vector<const Token *> topTokens;
     for (int i = 0; i < len; i++)
     {
-        if (tokens[i].type == "NORMAL")
-        {
-            std::wstring regex = toUtf16(tokens[i].regex);
-            scanner.tokens.push_back(&tokens[i]);
-            scanner.offsets.push_back(group);
-            scanner.markCounts.push_back(static_cast<int>(boost::wregex(regex).mark_count()));
-            group += 1 + scanner.markCounts.back();
-            combined += (combined.empty() ? L"(" : L"|(") + regex + L")";
-        }
+        topTokens.push_back(&tokens[i]);
     }
-    if (scanner.tokens.empty())
+    if (topTokens.empty())
     {
         delete[] tokens;
         return styles;
     }
-    scanner.combined = boost::wregex(combined);
+    Scanner scanner = buildScanner(topTokens);
+    std::map<const Token *, Region> regions;
+    buildRegions(topTokens, regions);
+    std::vector<OpenRegion> open;
     // Like TextMate, each line is matched on its own: its text without the line
     // break, plus a "\n" whose style is given to the real line break
     const ptrdiff_t size = static_cast<ptrdiff_t>(wideText.size());
     std::wstring line;
     std::vector<int> lineStyles;
     boost::wsmatch m;
+    boost::wsmatch endMatch;
     for (ptrdiff_t lineStart = 0; lineStart < size;)
     {
         ptrdiff_t lineEnd = lineStart;
@@ -261,7 +364,7 @@ int *ParseFile(tinyxml2::XMLElement *config, bool darkModeEnabled, int length, s
         line.assign(wideText, lineStart, lineEnd - lineStart);
         line += L'\n';
         lineStyles.assign(line.size(), 0);
-        scanLine(line, scanner, m, lineStyles);
+        scanLine(line, scanner, regions, open, m, endMatch, lineStyles);
         const ptrdiff_t lineLength = lineEnd - lineStart;
         for (ptrdiff_t k = 0; k < lineLength; k++)
         {
