@@ -33,6 +33,12 @@ compile-x64: generate
 compile-Win32: generate
 	ARCH=i686 ./scripts/build.sh
 
+compile-x64-debug: generate
+	ARCH=x86_64 ./scripts/build.sh --debug
+
+compile-Win32-debug: generate
+	ARCH=i686 ./scripts/build.sh --debug
+
 install: compile-x64
 	rm -rf ~/.wine/drive_c/Program\ Files/Notepad++/plugins/RAScript
 	mkdir -p ~/.wine/drive_c/Program\ Files/Notepad++/plugins/RAScript
@@ -45,11 +51,29 @@ install-Win32: compile-Win32
 	cp out/RAScript.dll ~/.wine/drive_c/Program\ Files\ \(x86\)/Notepad++/plugins/RAScript
 	make open-Win32
 
+install-debug: compile-x64-debug
+	rm -rf ~/.wine/drive_c/Program\ Files/Notepad++/plugins/RAScript
+	mkdir -p ~/.wine/drive_c/Program\ Files/Notepad++/plugins/RAScript
+	cp out/RAScript.dll ~/.wine/drive_c/Program\ Files/Notepad++/plugins/RAScript
+	make open-debug
+
+install-Win32-debug: compile-Win32-debug
+	rm -rf ~/.wine/drive_c/Program\ Files\ \(x86\)/Notepad++/plugins/RAScript
+	mkdir -p ~/.wine/drive_c/Program\ Files\ \(x86\)/Notepad++/plugins/RAScript
+	cp out/RAScript.dll ~/.wine/drive_c/Program\ Files\ \(x86\)/Notepad++/plugins/RAScript
+	make open-Win32-debug
+
 open:
 	wine ~/.wine/drive_c/Program\ Files/Notepad++/notepad++.exe
 
 open-Win32:
 	wine ~/.wine/drive_c/Program\ Files\ \(x86\)/Notepad++/notepad++.exe
+
+open-debug: # shows a Debug build's debug output in the terminal
+	WINEDEBUG=warn+seh wine ~/.wine/drive_c/Program\ Files/Notepad++/notepad++.exe 2>&1 | grep --line-buffered 'OutputDebugStringW'
+
+open-Win32-debug: # shows a Debug build's debug output in the terminal
+	WINEDEBUG=warn+seh wine ~/.wine/drive_c/Program\ Files\ \(x86\)/Notepad++/notepad++.exe 2>&1 | grep --line-buffered 'OutputDebugStringW'
 
 debug:
 	wine ~/.wine/drive_c/Program\ Files/DebugView/dbgview64.exe

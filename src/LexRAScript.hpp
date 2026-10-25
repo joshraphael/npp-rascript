@@ -29,6 +29,11 @@ private:
     // RAScript.xml, loaded once and kept for the light or dark styles it was loaded with
     struct Grammar *grammar = nullptr;
     bool grammarDarkMode = false;
+
+    // The view, background color and styleGeneration the backgrounds were last set for
+    void *backgroundsView = nullptr;
+    unsigned long backgroundsColor = 0;
+    int backgroundsGeneration = -1;
 };
 
 #endif // LEXRASCRIPT_HPP
