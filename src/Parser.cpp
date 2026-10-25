@@ -295,49 +295,83 @@ void scanLine(const std::wstring &line, const Scanner &top, const std::map<const
     }
 }
 
-int *ParseFile(tinyxml2::XMLElement *config, bool darkModeEnabled, int length, std::string text)
+// A grammar loaded from RAScript.xml, compiled once and reused for every Lex
+// call. states holds every distinct stack of open regions seen at the end of a
+// line, so a line's state (Scintilla's line state) is an index into it, and 0 is
+// no open regions
+struct Grammar
 {
-    std::string modeKey = "lightStyle";
-    if (darkModeEnabled)
-    {
-        modeKey = "darkStyle";
-    }
-    int *styles = new int[length];
-    for (int i = 0; i < length; i++)
-    {
-        styles[i] = 0;
-    }
-    Token *tokens = new Token[config->ChildElementCount()];
-    int len = 0;
+    std::vector<Token> tokens;
+    Scanner top;
+    std::map<const Token *, Region> regions;
+    std::vector<std::vector<OpenRegion>> states;
+};
+
+Grammar *LoadGrammar(tinyxml2::XMLElement *config, bool darkModeEnabled)
+{
+    std::string modeKey = darkModeEnabled ? "darkStyle" : "lightStyle";
+    Grammar *grammar = new Grammar();
     for (tinyxml2::XMLElement *e = config->FirstChildElement("Token"); e != NULL; e = e->NextSiblingElement("Token"))
     {
         Token token = getToken(e, modeKey);
         if (token.initialized)
         {
-            tokens[len] = token;
-            len++;
+            grammar->tokens.push_back(token);
         }
+    }
+    std::vector<const Token *> topTokens;
+    for (size_t i = 0; i < grammar->tokens.size(); i++)
+    {
+        topTokens.push_back(&grammar->tokens[i]);
+    }
+    grammar->top = buildScanner(topTokens);
+    buildRegions(topTokens, grammar->regions);
+    grammar->states.push_back(std::vector<OpenRegion>());
+    return grammar;
+}
+
+void FreeGrammar(Grammar *grammar)
+{
+    delete grammar;
+}
+
+int stateOf(Grammar &grammar, const std::vector<OpenRegion> &open)
+{
+    for (size_t i = 0; i < grammar.states.size(); i++)
+    {
+        const std::vector<OpenRegion> &state = grammar.states[i];
+        bool same = state.size() == open.size();
+        for (size_t k = 0; same && k < open.size(); k++)
+        {
+            same = state[k].token == open[k].token && state[k].style == open[k].style;
+        }
+        if (same)
+        {
+            return static_cast<int>(i);
+        }
+    }
+    grammar.states.push_back(open);
+    return static_cast<int>(grammar.states.size() - 1);
+}
+
+void ParseLines(Grammar *grammar, const std::string &text, int state, std::vector<int> &styles, std::vector<int> &lineStates)
+{
+    styles.assign(text.size(), 0);
+    lineStates.clear();
+    if (grammar->top.tokens.empty())
+    {
+        return;
+    }
+    std::vector<OpenRegion> open;
+    if (state > 0 && state < static_cast<int>(grammar->states.size()))
+    {
+        open = grammar->states[state];
     }
     // The regexes run on UTF-16 text (see toUtf16), so styles are painted by
     // UTF-16 unit first and copied to the document's bytes at the end
     std::vector<int> byteOf;
     std::wstring wideText = toUtf16(text, byteOf);
     std::vector<int> stylePerUnit(wideText.size(), 0);
-    
-    std::vector<const Token *> topTokens;
-    for (int i = 0; i < len; i++)
-    {
-        topTokens.push_back(&tokens[i]);
-    }
-    if (topTokens.empty())
-    {
-        delete[] tokens;
-        return styles;
-    }
-    Scanner scanner = buildScanner(topTokens);
-    std::map<const Token *, Region> regions;
-    buildRegions(topTokens, regions);
-    std::vector<OpenRegion> open;
     // Like TextMate, each line is matched on its own: its text without the line
     // break, plus a "\n" whose style is given to the real line break
     const ptrdiff_t size = static_cast<ptrdiff_t>(wideText.size());
@@ -364,7 +398,8 @@ int *ParseFile(tinyxml2::XMLElement *config, bool darkModeEnabled, int length, s
         line.assign(wideText, lineStart, lineEnd - lineStart);
         line += L'\n';
         lineStyles.assign(line.size(), 0);
-        scanLine(line, scanner, regions, open, m, endMatch, lineStyles);
+        scanLine(line, grammar->top, grammar->regions, open, m, endMatch, lineStyles);
+        lineStates.push_back(stateOf(*grammar, open));
         const ptrdiff_t lineLength = lineEnd - lineStart;
         for (ptrdiff_t k = 0; k < lineLength; k++)
         {
@@ -385,6 +420,19 @@ int *ParseFile(tinyxml2::XMLElement *config, bool darkModeEnabled, int length, s
             styles[b] = stylePerUnit[i];
         }
     }
-    delete[] tokens;
-    return styles;
+}
+
+int *ParseFile(tinyxml2::XMLElement *config, bool darkModeEnabled, int length, std::string text)
+{
+    Grammar *grammar = LoadGrammar(config, darkModeEnabled);
+    std::vector<int> styles;
+    std::vector<int> lineStates;
+    ParseLines(grammar, text, 0, styles, lineStates);
+    FreeGrammar(grammar);
+    int *result = new int[length];
+    for (int i = 0; i < length; i++)
+    {
+        result[i] = i < static_cast<int>(styles.size()) ? styles[i] : 0;
+    }
+    return result;
 }

@@ -16,7 +16,7 @@ public:
     LexRAScript() : DefaultLexer("RAScript", SCLEX_AUTOMATIC)
     {
     }
-    virtual ~LexRAScript() {}
+    virtual ~LexRAScript();
 
     static ILexer5 *LexerFactory();
 
@@ -24,6 +24,11 @@ public:
     void SCI_METHOD Release();
     int SCI_METHOD Version() const;
     void SCI_METHOD Lex(Sci_PositionU startPos, Sci_Position lengthDoc, int initStyle, Scintilla::IDocument *pAccess);
+
+private:
+    // RAScript.xml, loaded once and kept for the light or dark styles it was loaded with
+    struct Grammar *grammar = nullptr;
+    bool grammarDarkMode = false;
 };
 
 #endif // LEXRASCRIPT_HPP
