@@ -1,4 +1,5 @@
 #include <map>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -27,8 +28,12 @@ struct Token
     // (capture group, style) pairs, so one token can style each group differently
     std::vector<std::pair<int, int>> groups;
 
-    // A DELIMETER's child <Token>s, matched between its start and end
+    // A DELIMETER's child <Token>s and <Include>s, matched between its start and end
     std::vector<Token> children;
+
+    // An <Include ref="#name" /> or <Include ref="$self" /> (type INCLUDE): the
+    // tokens of a <Repository> <Rule>, or the top-level list, in its place
+    std::string include;
 
     // A DELIMETER's group styles for its start and end matches: <StartGroup> and
     // <EndGroup>, or <Group> for both when a side has none (TextMate's
@@ -51,6 +56,8 @@ std::vector<std::pair<int, int>> getGroups(tinyxml2::XMLElement *e, const char *
     }
     return groups;
 }
+
+std::vector<Token> getTokens(tinyxml2::XMLElement *parent, const std::string &modeKey);
 
 Token getToken(tinyxml2::XMLElement *e, std::string modeKey)
 {
@@ -103,19 +110,39 @@ Token getToken(tinyxml2::XMLElement *e, std::string modeKey)
                 {
                     t.endGroups = groups;
                 }
-                for (tinyxml2::XMLElement *c = e->FirstChildElement("Token"); c != NULL; c = c->NextSiblingElement("Token"))
-                {
-                    Token child = getToken(c, modeKey);
-                    if (child.initialized)
-                    {
-                        t.children.push_back(child);
-                    }
-                }
+                t.children = getTokens(e, modeKey);
                 return t;
             }
         }
     }
     return t;
+}
+
+std::vector<Token> getTokens(tinyxml2::XMLElement *parent, const std::string &modeKey)
+{
+    std::vector<Token> tokens;
+    for (tinyxml2::XMLElement *e = parent->FirstChildElement(); e != NULL; e = e->NextSiblingElement())
+    {
+        std::string element = e->Name();
+        if (element == "Token")
+        {
+            Token token = getToken(e, modeKey);
+            if (token.initialized)
+            {
+                tokens.push_back(token);
+            }
+        }
+        else if (element == "Include" && e->Attribute("ref") != NULL)
+        {
+            Token include;
+            include.initialized = true;
+            include.style = 0;
+            include.type = "INCLUDE";
+            include.include = e->Attribute("ref");
+            tokens.push_back(include);
+        }
+    }
+    return tokens;
 }
 
 // Converts UTF-8 to UTF-16 so the token regexes can run as boost::wregex, whose
@@ -201,7 +228,53 @@ Scanner buildScanner(const std::vector<const Token *> &tokens)
     return scanner;
 }
 
-void buildRegions(const std::vector<const Token *> &tokens, std::map<const Token *, Region> &regions)
+// The top-level token list ($self) and the <Repository>'s named <Rule>s
+struct TokenLists
+{
+    std::vector<Token> self;
+    std::map<std::string, std::vector<Token>> repository;
+};
+
+// The tokens to scan for a list: each <Include> replaced in place by the tokens
+// of the list it names. A list already being expanded is skipped, so includes
+// can't loop, and a DELIMETER's children are their own list, expanded for its
+// region
+void flatten(const std::vector<Token> &list, const TokenLists &lists, std::set<const std::vector<Token> *> &expanding, std::vector<const Token *> &tokens)
+{
+    expanding.insert(&list);
+    for (size_t i = 0; i < list.size(); i++)
+    {
+        if (list[i].type != "INCLUDE")
+        {
+            tokens.push_back(&list[i]);
+            continue;
+        }
+        const std::vector<Token> *included = NULL;
+        if (list[i].include == "$self")
+        {
+            included = &lists.self;
+        }
+        else if (list[i].include.size() > 1 && list[i].include[0] == '#' && lists.repository.count(list[i].include.substr(1)))
+        {
+            included = &lists.repository.at(list[i].include.substr(1));
+        }
+        if (included != NULL && !expanding.count(included))
+        {
+            flatten(*included, lists, expanding, tokens);
+        }
+    }
+    expanding.erase(&list);
+}
+
+std::vector<const Token *> flatten(const std::vector<Token> &list, const TokenLists &lists)
+{
+    std::set<const std::vector<Token> *> expanding;
+    std::vector<const Token *> tokens;
+    flatten(list, lists, expanding, tokens);
+    return tokens;
+}
+
+void buildRegions(const std::vector<const Token *> &tokens, const TokenLists &lists, std::map<const Token *, Region> &regions)
 {
     for (size_t i = 0; i < tokens.size(); i++)
     {
@@ -209,16 +282,12 @@ void buildRegions(const std::vector<const Token *> &tokens, std::map<const Token
         {
             continue;
         }
-        std::vector<const Token *> children;
-        for (size_t c = 0; c < tokens[i]->children.size(); c++)
-        {
-            children.push_back(&tokens[i]->children[c]);
-        }
+        std::vector<const Token *> children = flatten(tokens[i]->children, lists);
         Region &region = regions[tokens[i]];
         region.children = buildScanner(children);
         region.end = boost::wregex(toUtf16(tokens[i]->end));
         region.endMarkCount = static_cast<int>(region.end.mark_count());
-        buildRegions(children, regions);
+        buildRegions(children, lists, regions);
     }
 }
 
@@ -332,7 +401,7 @@ void scanLine(const std::wstring &line, const Scanner &top, const std::map<const
 // no open regions
 struct Grammar
 {
-    std::vector<Token> tokens;
+    TokenLists lists;
     Scanner top;
     std::map<const Token *, Region> regions;
     std::vector<std::vector<OpenRegion>> states;
@@ -342,21 +411,18 @@ Grammar *LoadGrammar(tinyxml2::XMLElement *config, bool darkModeEnabled)
 {
     std::string modeKey = darkModeEnabled ? "darkStyle" : "lightStyle";
     Grammar *grammar = new Grammar();
-    for (tinyxml2::XMLElement *e = config->FirstChildElement("Token"); e != NULL; e = e->NextSiblingElement("Token"))
+    grammar->lists.self = getTokens(config, modeKey);
+    tinyxml2::XMLElement *repository = config->FirstChildElement("Repository");
+    for (tinyxml2::XMLElement *r = repository != NULL ? repository->FirstChildElement("Rule") : NULL; r != NULL; r = r->NextSiblingElement("Rule"))
     {
-        Token token = getToken(e, modeKey);
-        if (token.initialized)
+        if (r->Attribute("name") != NULL)
         {
-            grammar->tokens.push_back(token);
+            grammar->lists.repository[r->Attribute("name")] = getTokens(r, modeKey);
         }
     }
-    std::vector<const Token *> topTokens;
-    for (size_t i = 0; i < grammar->tokens.size(); i++)
-    {
-        topTokens.push_back(&grammar->tokens[i]);
-    }
+    std::vector<const Token *> topTokens = flatten(grammar->lists.self, grammar->lists);
     grammar->top = buildScanner(topTokens);
-    buildRegions(topTokens, grammar->regions);
+    buildRegions(topTokens, grammar->lists, grammar->regions);
     grammar->states.push_back(std::vector<OpenRegion>());
     return grammar;
 }
