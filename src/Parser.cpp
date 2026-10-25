@@ -29,16 +29,18 @@ struct Token
 
     // A DELIMETER's child <Token>s, matched between its start and end
     std::vector<Token> children;
+
+    // A DELIMETER's group styles for its start and end matches: <StartGroup> and
+    // <EndGroup>, or <Group> for both when a side has none (TextMate's
+    // beginCaptures, endCaptures and captures)
+    std::vector<std::pair<int, int>> startGroups;
+    std::vector<std::pair<int, int>> endGroups;
 };
 
-Token getToken(tinyxml2::XMLElement *e, std::string modeKey)
+std::vector<std::pair<int, int>> getGroups(tinyxml2::XMLElement *e, const char *element, const std::string &modeKey)
 {
-    Token t;
-    t.initialized = false;
-    const char *nameAttr = e->Attribute("name");
-    const char *typeAttr = e->Attribute("type");
     std::vector<std::pair<int, int>> groups;
-    for (tinyxml2::XMLElement *g = e->FirstChildElement("Group"); g != NULL; g = g->NextSiblingElement("Group"))
+    for (tinyxml2::XMLElement *g = e->FirstChildElement(element); g != NULL; g = g->NextSiblingElement(element))
     {
         int index;
         int groupStyle;
@@ -47,6 +49,16 @@ Token getToken(tinyxml2::XMLElement *e, std::string modeKey)
             groups.push_back(std::make_pair(index, groupStyle));
         }
     }
+    return groups;
+}
+
+Token getToken(tinyxml2::XMLElement *e, std::string modeKey)
+{
+    Token t;
+    t.initialized = false;
+    const char *nameAttr = e->Attribute("name");
+    const char *typeAttr = e->Attribute("type");
+    std::vector<std::pair<int, int>> groups = getGroups(e, "Group", modeKey);
     // A NORMAL token's own style is only optional when its groups have styles. A
     // DELIMETER's is always optional: without one, it takes its parent's style
     int style = 0;
@@ -81,6 +93,16 @@ Token getToken(tinyxml2::XMLElement *e, std::string modeKey)
                 t.style = style;
                 t.start = startAttr;
                 t.end = endAttr;
+                t.startGroups = getGroups(e, "StartGroup", modeKey);
+                t.endGroups = getGroups(e, "EndGroup", modeKey);
+                if (t.startGroups.empty())
+                {
+                    t.startGroups = groups;
+                }
+                if (t.endGroups.empty())
+                {
+                    t.endGroups = groups;
+                }
                 for (tinyxml2::XMLElement *c = e->FirstChildElement("Token"); c != NULL; c = c->NextSiblingElement("Token"))
                 {
                     Token child = getToken(c, modeKey);
@@ -154,6 +176,7 @@ struct Region
 {
     Scanner children;
     boost::wregex end;
+    int endMarkCount;
 };
 
 // A NORMAL token is matched by its regex, a DELIMETER by its start
@@ -194,6 +217,7 @@ void buildRegions(const std::vector<const Token *> &tokens, std::map<const Token
         Region &region = regions[tokens[i]];
         region.children = buildScanner(children);
         region.end = boost::wregex(toUtf16(tokens[i]->end));
+        region.endMarkCount = static_cast<int>(region.end.mark_count());
         buildRegions(children, regions);
     }
 }
@@ -205,6 +229,22 @@ struct OpenRegion
     const Token *token;
     int style;
 };
+
+void styleGroups(const std::vector<std::pair<int, int>> &groups, const boost::wsmatch &m, int offset, int markCount, std::wstring::const_iterator begin, std::vector<int> &lineStyles)
+{
+    for (size_t g = 0; g < groups.size(); g++)
+    {
+        int j = groups[g].first;
+        if (j < 0 || j > markCount || !m[offset + j].matched)
+        {
+            continue;
+        }
+        for (ptrdiff_t k = m[offset + j].first - begin; k < m[offset + j].second - begin; k++)
+        {
+            lineStyles[k] = groups[g].second;
+        }
+    }
+}
 
 void styleMatch(const Token &token, const boost::wsmatch &m, int offset, int markCount, std::wstring::const_iterator begin, std::vector<int> &lineStyles)
 {
@@ -219,18 +259,7 @@ void styleMatch(const Token &token, const boost::wsmatch &m, int offset, int mar
         }
         return;
     }
-    for (size_t g = 0; g < token.groups.size(); g++)
-    {
-        int j = token.groups[g].first;
-        if (j < 0 || j > markCount || !m[offset + j].matched)
-        {
-            continue;
-        }
-        for (ptrdiff_t k = m[offset + j].first - begin; k < m[offset + j].second - begin; k++)
-        {
-            lineStyles[k] = token.groups[g].second;
-        }
-    }
+    styleGroups(token.groups, m, offset, markCount, begin, lineStyles);
 }
 
 void fill(std::vector<int> &lineStyles, ptrdiff_t from, ptrdiff_t to, int style)
@@ -263,6 +292,7 @@ void scanLine(const std::wstring &line, const Scanner &top, const std::map<const
             if (boost::regex_search(begin + p, line.cend(), endMatch, region.end, flags) && (!found || endMatch[0].first <= m[0].first))
             {
                 fill(lineStyles, p, endMatch[0].second - begin, style);
+                styleGroups(open.back().token->endGroups, endMatch, 0, region.endMarkCount, begin, lineStyles);
                 open.pop_back();
                 p = endMatch[0].second - begin;
                 continue;
@@ -284,6 +314,7 @@ void scanLine(const std::wstring &line, const Scanner &top, const std::map<const
         {
             OpenRegion region = {&token, token.style != 0 ? token.style : style};
             fill(lineStyles, m[0].first - begin, m[0].second - begin, region.style);
+            styleGroups(token.startGroups, m, scanner.offsets[t], scanner.markCounts[t], begin, lineStyles);
             open.push_back(region);
         }
         else
