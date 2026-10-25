@@ -6,7 +6,7 @@ CompileFlags:
     - -std=c++17
     - --target=x86_64-w64-mingw32
     - -DUNICODE
-    - -DDEBUG
+    - -D_DEBUG
     - -DBOOST_REGEX_STANDALONE
     - -Itinyxml2
     - -Iregex/include

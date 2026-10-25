@@ -432,6 +432,35 @@ void FreeGrammar(Grammar *grammar)
     delete grammar;
 }
 
+void addStyles(const std::vector<Token> &tokens, std::set<int> &styles)
+{
+    for (size_t i = 0; i < tokens.size(); i++)
+    {
+        styles.insert(tokens[i].style);
+        const std::vector<std::pair<int, int>> *lists[] = {&tokens[i].groups, &tokens[i].startGroups, &tokens[i].endGroups};
+        for (size_t l = 0; l < 3; l++)
+        {
+            for (size_t g = 0; g < lists[l]->size(); g++)
+            {
+                styles.insert((*lists[l])[g].second);
+            }
+        }
+        addStyles(tokens[i].children, styles);
+    }
+}
+
+std::vector<int> GrammarStyles(Grammar *grammar)
+{
+    std::set<int> styles;
+    styles.insert(0);
+    addStyles(grammar->lists.self, styles);
+    for (std::map<std::string, std::vector<Token>>::const_iterator r = grammar->lists.repository.begin(); r != grammar->lists.repository.end(); ++r)
+    {
+        addStyles(r->second, styles);
+    }
+    return std::vector<int>(styles.begin(), styles.end());
+}
+
 int stateOf(Grammar &grammar, const std::vector<OpenRegion> &open)
 {
     for (size_t i = 0; i < grammar.states.size(); i++)

@@ -13,6 +13,7 @@
 const int nbFunc = 2;
 FuncItem funcItem[nbFunc];
 NppData nppData;
+int styleGeneration = 0;
 TCHAR configPath[MAX_PATH];
 const TCHAR NPP_PLUGIN_NAME[] = TEXT("RAScript");
 
@@ -131,6 +132,7 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 	case NPPN_BUFFERACTIVATED:	 // change tabs
 	case NPPN_WORDSTYLESUPDATED: // style config change
 	{
+		styleGeneration++; // Notepad++ may have reset the styles' backgrounds
 		int which = -1;
 		::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
 		if (which != -1)

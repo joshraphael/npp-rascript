@@ -4,10 +4,12 @@ if [ -z "${ARCH}" ]; then echo "empty architecture for build"; exit 1; fi;
 
 if [[ ${ARCH} != @(x86_64|i686) ]]; then echo "invalid architecture selected to build: ${ARCH}"; exit 1; fi;
 
-ENABLE_DEBUG=true
+# --debug makes a Debug build, with the debug output compiled in (see src/DebugUtils.hpp).
+# _DEBUG also turns on tinyxml2's asserts, one of which compares an unsigned size
+# with >= 0, so that warning is off in Debug builds
 DBUG=""
-if ${ENABLE_DEBUG}; then
-    DBUG=-DDEBUG
+if [ "$1" = "--debug" ]; then
+    DBUG="-D_DEBUG -Wno-type-limits"
 fi;
 BUILD_OPTIONS="-std=c++17 -O3 -Wall -Werror -Wextra -DUNICODE"
 

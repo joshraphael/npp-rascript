@@ -2,7 +2,6 @@
 #include <assert.h>
 #include <string>
 #include <string_view>
-#include <unordered_map>
 #include <vector>
 #include <windows.h>
 
@@ -17,6 +16,9 @@
 #include "StyleContext.h"
 
 extern NppData nppData;
+// Bumped by the plugin when Notepad++ may have reset the styles (theme, style
+// configurator or dark mode change, tab switch), so Lex checks the backgrounds again
+extern int styleGeneration;
 
 Scintilla::ILexer5 *LexRAScript::LexerFactory()
 {
@@ -40,6 +42,9 @@ int SCI_METHOD LexRAScript::Version() const
 
 void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc, int initStyle, Scintilla::IDocument *pAccess)
 {
+    TimingLog timing;
+    [[maybe_unused]] const Sci_PositionU requestedStart = startPos;
+    [[maybe_unused]] const Sci_Position requestedLength = lengthDoc;
     LexAccessor styler(pAccess);
     int which = -1;
     ::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
@@ -48,11 +53,15 @@ void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc,
         return;
     }
     HWND curScintilla = (which == 0) ? nppData._scintillaMainHandle : nppData._scintillaSecondHandle;
+    timing.mark("currentView");
 
     COLORREF bgColor = ::SendMessage(nppData._nppHandle, NPPM_GETEDITORDEFAULTBACKGROUNDCOLOR, 0, 0);
+    timing.mark("background");
 
     bool darkModeEnabled = ::SendMessageW(nppData._nppHandle, NPPM_ISDARKMODEENABLED, 0, 0);
+    timing.mark("darkMode");
 
+    bool reloaded = false;
     if (grammar == nullptr || darkModeEnabled != grammarDarkMode)
     {
         TCHAR configPath[MAX_PATH];
@@ -71,9 +80,32 @@ void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc,
         FreeGrammar(grammar);
         grammar = LoadGrammar(configDoc.RootElement()->FirstChildElement("RAScript"), darkModeEnabled);
         grammarDarkMode = darkModeEnabled;
+        reloaded = true;
         startPos = 0;
         lengthDoc = pAccess->Length();
     }
+    timing.mark("grammar");
+
+    // Setting a style's background redraws the whole view, and sending Scintilla
+    // messages while styling can stall typing, so the backgrounds are set before
+    // styling, and only checked when something they depend on changed
+    [[maybe_unused]] int backgroundsSet = 0;
+    if (reloaded || curScintilla != backgroundsView || bgColor != backgroundsColor || styleGeneration != backgroundsGeneration)
+    {
+        std::vector<int> grammarStyles = GrammarStyles(grammar);
+        for (size_t i = 0; i < grammarStyles.size(); i++)
+        {
+            if (static_cast<COLORREF>(::SendMessage(curScintilla, SCI_STYLEGETBACK, grammarStyles[i], 0)) != bgColor)
+            {
+                ::SendMessage(curScintilla, SCI_STYLESETBACK, grammarStyles[i], (LPARAM)bgColor);
+                backgroundsSet++;
+            }
+        }
+        backgroundsView = curScintilla;
+        backgroundsColor = bgColor;
+        backgroundsGeneration = styleGeneration;
+    }
+    timing.mark("backgrounds");
 
     // Style whole lines, starting from the state the line before ended in
     const Sci_Position length = pAccess->Length();
@@ -92,35 +124,31 @@ void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc,
     }
     std::string text(end - start, '\0');
     pAccess->GetCharRange(&text[0], start, end - start);
+    timing.mark("read");
     std::vector<int> styles;
     std::vector<int> lineStates;
     ParseLines(grammar, text, firstLine > 0 ? styler.GetLineState(firstLine - 1) : 0, styles, lineStates);
+    timing.mark("parse");
     for (size_t i = 0; i < lineStates.size(); i++)
     {
         styler.SetLineState(firstLine + static_cast<Sci_Position>(i), lineStates[i]);
     }
+    timing.mark("lineStates");
 
     StyleContext sc(start, end - start, initStyle, styler);
-    std::unordered_map<int, bool> stylesUpdated;
     // styles[p - start] is the style of byte p. SetState colors everything since
     // the last SetState with the previous style, then starts the new one here;
     // Complete colors the last stretch, up to the end of the range
     for (; sc.More(); sc.Forward())
     {
-        int style = styles[sc.currentPos - start];
-        if (!stylesUpdated.count(style))
-        {
-            // setting a style redraws the whole view, so only when the background changed
-            if (static_cast<COLORREF>(::SendMessage(curScintilla, SCI_STYLEGETBACK, style, 0)) != bgColor)
-            {
-                ::SendMessage(curScintilla, SCI_STYLESETBACK, style, (LPARAM)bgColor);
-            }
-            stylesUpdated[style] = true;
-        }
-        sc.SetState(style);
+        sc.SetState(styles[sc.currentPos - start]);
     }
+    timing.mark("styleLoop");
     sc.Complete();
     styler.Flush();
+    timing.mark("flush");
+    DBUG("Lex start=" << requestedStart << " length=" << requestedLength << " lines=" << lastLine - firstLine + 1 << " reloaded=" << reloaded
+                      << " backgroundsSet=" << backgroundsSet << " | " << timing << "\n");
 }
 
 extern "C" __declspec(dllexport) int SCI_METHOD GetLexerCount()
