@@ -3,6 +3,6 @@
 
 #include <string>
 
-std::string config_contents = R"<NPP_RASCRIPT>(${RASCRIPT_NPP_SYNTAX})<NPP_RASCRIPT>";
+inline const std::string config_contents = R"<NPP_RASCRIPT>(${RASCRIPT_NPP_SYNTAX})<NPP_RASCRIPT>";
 
 #endif // CONFIG_HPP

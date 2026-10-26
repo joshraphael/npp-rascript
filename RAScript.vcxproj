@@ -138,7 +138,7 @@
       <PreprocessorDefinitions>WIN32;BOOST_REGEX_STANDALONE;_DEBUG;_WINDOWS;_USRDLL;Plugin_EXPORTS;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <TreatWarningAsError>true</TreatWarningAsError>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <ModuleDefinitionFile>src\Exports.def</ModuleDefinitionFile>
@@ -154,7 +154,7 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <ModuleDefinitionFile>src\Exports.def</ModuleDefinitionFile>
@@ -170,7 +170,7 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <ModuleDefinitionFile>src\Exports.def</ModuleDefinitionFile>
@@ -187,7 +187,7 @@
       <PreprocessorDefinitions>WIN32;BOOST_REGEX_STANDALONE;NDEBUG;_WINDOWS;_USRDLL;Plugin_EXPORTS;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <TreatWarningAsError>true</TreatWarningAsError>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <ModuleDefinitionFile>src\Exports.def</ModuleDefinitionFile>
@@ -207,7 +207,7 @@
       <PreprocessorDefinitions>WIN32;BOOST_REGEX_STANDALONE;NDEBUG;_WINDOWS;_USRDLL;Plugin_EXPORTS;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <TreatWarningAsError>true</TreatWarningAsError>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <ModuleDefinitionFile>src\Exports.def</ModuleDefinitionFile>
@@ -227,7 +227,7 @@
       <PreprocessorDefinitions>WIN32;BOOST_REGEX_STANDALONE;NDEBUG;_WINDOWS;_USRDLL;Plugin_EXPORTS;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <TreatWarningAsError>true</TreatWarningAsError>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <ModuleDefinitionFile>src\Exports.def</ModuleDefinitionFile>

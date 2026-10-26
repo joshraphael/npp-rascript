@@ -1,19 +1,19 @@
 #define WIN32_LEAN_AND_MEAN
-#include <assert.h>
-#include <string>
-#include <string_view>
-#include <vector>
-#include <windows.h>
-
-#include "ILexer.h"
-#include "LexAccessor.h"
-#include "tinyxml2.h"
-#include "PluginInterface.h"
+#include <cassert> // LexAccessor.h uses assert without including it
 
 #include "DebugUtils.hpp"
+#include "ILexer.h"
+#include "LexAccessor.h"
 #include "LexRAScript.hpp"
+#include "Lexilla.h"
 #include "Parser.hpp"
+#include "PluginInterface.h"
 #include "StyleContext.h"
+#include "tinyxml2.h"
+#include <cstdio>
+#include <string>
+#include <vector>
+#include <windows.h>
 
 extern NppData nppData;
 // Bumped by the plugin when Notepad++ may have reset the styles (theme, style
@@ -40,12 +40,15 @@ int SCI_METHOD LexRAScript::Version() const
     return Scintilla::lvRelease5;
 }
 
-void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc, int initStyle, Scintilla::IDocument *pAccess)
+void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos,
+                                 Sci_Position lengthDoc,
+                                 int initStyle,
+                                 Scintilla::IDocument *pAccess)
 {
     TimingLog timing;
     [[maybe_unused]] const Sci_PositionU requestedStart = startPos;
     [[maybe_unused]] const Sci_Position requestedLength = lengthDoc;
-    LexAccessor styler(pAccess);
+    Lexilla::LexAccessor styler(pAccess);
     int which = -1;
     ::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
     if (which == -1)
@@ -66,12 +69,16 @@ void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc,
     {
         TCHAR configPath[MAX_PATH];
         ::SendMessage(nppData._nppHandle, NPPM_GETPLUGINSCONFIGDIR, MAX_PATH, (LPARAM)configPath);
-        std::wstring configFile(configPath);
-        std::wstring config = L"\\RAScript.xml";
-        configFile = configFile + config;
-        const std::string finalConfigFilePath(configFile.begin(), configFile.end());
+        // a wide path, so a config folder with non-ASCII characters (a user name like José) works
+        std::wstring configFile = std::wstring(configPath) + L"\\RAScript.xml";
+        FILE *file = _wfopen(configFile.c_str(), L"rb");
+        if (file == NULL)
+        {
+            return;
+        }
         tinyxml2::XMLDocument configDoc;
-        tinyxml2::XMLError eResult = configDoc.LoadFile(finalConfigFilePath.c_str());
+        tinyxml2::XMLError eResult = configDoc.LoadFile(file);
+        fclose(file);
         if (eResult != tinyxml2::XML_SUCCESS)
         {
             return;
@@ -90,7 +97,8 @@ void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc,
     // messages while styling can stall typing, so the backgrounds are set before
     // styling, and only checked when something they depend on changed
     [[maybe_unused]] int backgroundsSet = 0;
-    if (reloaded || curScintilla != backgroundsView || bgColor != backgroundsColor || styleGeneration != backgroundsGeneration)
+    if (reloaded || curScintilla != backgroundsView || bgColor != backgroundsColor ||
+        styleGeneration != backgroundsGeneration)
     {
         std::vector<int> grammarStyles = GrammarStyles(grammar);
         for (size_t i = 0; i < grammarStyles.size(); i++)
@@ -135,7 +143,7 @@ void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc,
     }
     timing.mark("lineStates");
 
-    StyleContext sc(start, end - start, initStyle, styler);
+    Lexilla::StyleContext sc(start, end - start, initStyle, styler);
     // styles[p - start] is the style of byte p. SetState colors everything since
     // the last SetState with the previous style, then starts the new one here;
     // Complete colors the last stretch, up to the end of the range
@@ -147,8 +155,8 @@ void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos, Sci_Position lengthDoc,
     sc.Complete();
     styler.Flush();
     timing.mark("flush");
-    DBUG("Lex start=" << requestedStart << " length=" << requestedLength << " lines=" << lastLine - firstLine + 1 << " reloaded=" << reloaded
-                      << " backgroundsSet=" << backgroundsSet << " | " << timing << "\n");
+    DBUG("Lex start=" << requestedStart << " length=" << requestedLength << " lines=" << lastLine - firstLine + 1
+                      << " reloaded=" << reloaded << " backgroundsSet=" << backgroundsSet << " | " << timing << "\n");
 }
 
 extern "C" __declspec(dllexport) int SCI_METHOD GetLexerCount()
@@ -161,16 +169,6 @@ extern "C" __declspec(dllexport) void SCI_METHOD GetLexerName(unsigned int index
     if (index == 0)
     {
         strncpy_s(name, buflength, "RAScript", _TRUNCATE);
-        name[buflength - 1] = '\0';
-    }
-}
-
-extern "C" __declspec(dllexport) void SCI_METHOD GetLexerStatusText(unsigned int index, WCHAR *desc, int buflength)
-{
-    if (index == 0)
-    {
-        wcsncpy_s(desc, buflength, L"RAScript file", _TRUNCATE);
-        desc[buflength - 1] = L'\0';
     }
 }
 

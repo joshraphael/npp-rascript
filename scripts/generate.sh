@@ -4,9 +4,9 @@ export VERSION="$(git describe --always --dirty)"
 export VERSION_MAJOR="0"
 export VERSION_MINOR="0"
 export VERSION_PATCH="0"
-# export SYNTAX_URL="https://github.com/joshraphael/rascript-syntax/releases/download/${RASCRIPT_SYNTAX_VERSION}/RAScript.xml"
-export SYNTAX_URL="https://raw.githubusercontent.com/joshraphael/rascript-syntax/refs/heads/main/syntaxes/RAScript.xml"
-curl -o temp/RAScript.xml ${SYNTAX_URL}
+export SYNTAX_URL="https://github.com/joshraphael/rascript-syntax/releases/download/${RASCRIPT_SYNTAX_VERSION}/RAScript.xml"
+# export SYNTAX_URL="https://raw.githubusercontent.com/joshraphael/rascript-syntax/refs/heads/main/syntaxes/RAScript.xml"
+curl -fsSL -o temp/RAScript.xml ${SYNTAX_URL}
 export RASCRIPT_NPP_SYNTAX=$(cat temp/RAScript.xml)
 
 if [[ ${GITHUB_REF_TYPE} == "tag" && ${GITHUB_REF_NAME} != "" ]]; then

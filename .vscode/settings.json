@@ -1,0 +1,19 @@
+{
+    "clangd.fallbackFlags": [
+        "-xc++",
+        "--target=x86_64-w64-mingw32",
+        "-std=c++20",
+        "-I${workspaceFolder}/src/tinyxml2",
+        "-I${workspaceFolder}/src/regex/include",
+        "-I${workspaceFolder}/src/notepad-plus-plus/scintilla/include",
+        "-I${workspaceFolder}/src/notepad-plus-plus/lexilla/include",
+        "-I${workspaceFolder}/src/notepad-plus-plus/lexilla/lexlib",
+        "-I${workspaceFolder}/src/notepad-plus-plus/PowerEditor/src",
+        "-I${workspaceFolder}/src/notepad-plus-plus/PowerEditor/src/MISC/PluginsManager",
+        "-I${workspaceFolder}/src/tinyxml2",
+        "-DBOOST_REGEX_STANDALONE",
+        "-D_DEBUG",
+        "-DUNICODE"
+    ],
+    "editor.formatOnSave": true
+}

@@ -1,16 +1,11 @@
+#include "boost/regex.hpp" // IWYU pragma: keep
+#include "tinyxml2.h"
 #include <map>
 #include <set>
 #include <string>
 #include <utility>
 #include <vector>
-
-#include "boost/regex.hpp"
-#include "PluginInterface.h"
-#include "tinyxml2.h"
-
-#include "DebugUtils.hpp"
-
-extern NppData nppData;
+#include <windows.h>
 
 // The kinds of TextMate rule: a single regex (match), a region (begin and end), a
 // list of rules (patterns), and an include of another list
@@ -25,7 +20,6 @@ enum class Kind
 struct Rule
 {
     bool initialized = false;
-    std::string name;
     Kind kind = Kind::List;
     int style = 0;
 
@@ -60,7 +54,8 @@ std::vector<std::pair<int, int>> getCaptures(tinyxml2::XMLElement *e, const char
     {
         int index;
         int groupStyle;
-        if (g->QueryIntAttribute("index", &index) == tinyxml2::XML_SUCCESS && g->QueryIntAttribute(modeKey.c_str(), &groupStyle) == tinyxml2::XML_SUCCESS)
+        if (g->QueryIntAttribute("index", &index) == tinyxml2::XML_SUCCESS &&
+            g->QueryIntAttribute(modeKey.c_str(), &groupStyle) == tinyxml2::XML_SUCCESS)
         {
             captures.push_back(std::make_pair(index, groupStyle));
         }
@@ -72,12 +67,10 @@ std::vector<Rule> getRules(tinyxml2::XMLElement *parent, const std::string &mode
 
 // A <Rule>'s kind follows from its attributes, like a TextMate rule: match makes a
 // Match rule, begin and end a BeginEnd rule, and neither a List of its child
-// rules. name is only a label
-Rule getRule(tinyxml2::XMLElement *e, std::string modeKey)
+// rules
+Rule getRule(tinyxml2::XMLElement *e, const std::string &modeKey)
 {
     Rule t;
-    t.initialized = false;
-    const char *nameAttr = e->Attribute("name");
     const char *matchAttr = e->Attribute("match");
     const char *beginAttr = e->Attribute("begin");
     const char *endAttr = e->Attribute("end");
@@ -86,7 +79,6 @@ Rule getRule(tinyxml2::XMLElement *e, std::string modeKey)
     // BeginEnd rule's is always optional: without one, it takes its parent's style
     int style = 0;
     tinyxml2::XMLError eResult = e->QueryIntAttribute(modeKey.c_str(), &style);
-    t.name = nameAttr != NULL ? nameAttr : "";
     t.style = style;
     if (matchAttr != NULL)
     {
@@ -122,7 +114,6 @@ Rule getRule(tinyxml2::XMLElement *e, std::string modeKey)
     {
         t.initialized = true;
         t.kind = Kind::List;
-        t.style = 0;
         t.patterns = getRules(e, modeKey);
     }
     return t;
@@ -146,7 +137,6 @@ std::vector<Rule> getRules(tinyxml2::XMLElement *parent, const std::string &mode
         {
             Rule include;
             include.initialized = true;
-            include.style = 0;
             include.kind = Kind::Include;
             include.include = e->Attribute("ref");
             rules.push_back(include);
@@ -248,7 +238,8 @@ struct RuleLists
 // The rules to scan for a list: each <Include> or List rule replaced in place by
 // the rules it holds. A list already being expanded is skipped, so includes can't
 // loop, and a BeginEnd rule's patterns are their own list, expanded for its region
-void flatten(const std::vector<Rule> &list, const RuleLists &lists, std::set<const std::vector<Rule> *> &expanding, std::vector<const Rule *> &rules)
+void flatten(const std::vector<Rule> &list, const RuleLists &lists, std::set<const std::vector<Rule> *> &expanding,
+             std::vector<const Rule *> &rules)
 {
     expanding.insert(&list);
     for (size_t i = 0; i < list.size(); i++)
@@ -268,7 +259,8 @@ void flatten(const std::vector<Rule> &list, const RuleLists &lists, std::set<con
         {
             included = &lists.self;
         }
-        else if (list[i].include.size() > 1 && list[i].include[0] == '#' && lists.repository.count(list[i].include.substr(1)))
+        else if (list[i].include.size() > 1 && list[i].include[0] == '#' &&
+                 lists.repository.count(list[i].include.substr(1)))
         {
             included = &lists.repository.at(list[i].include.substr(1));
         }
@@ -288,7 +280,8 @@ std::vector<const Rule *> flatten(const std::vector<Rule> &list, const RuleLists
     return rules;
 }
 
-void buildRegions(const std::vector<const Rule *> &rules, const RuleLists &lists, std::map<const Rule *, Region> &regions)
+void buildRegions(const std::vector<const Rule *> &rules, const RuleLists &lists,
+                  std::map<const Rule *, Region> &regions)
 {
     for (size_t i = 0; i < rules.size(); i++)
     {
@@ -313,7 +306,8 @@ struct OpenRegion
     int style;
 };
 
-void styleCaptures(const std::vector<std::pair<int, int>> &captures, const boost::wsmatch &m, int offset, int markCount, std::wstring::const_iterator begin, std::vector<int> &lineStyles)
+void styleCaptures(const std::vector<std::pair<int, int>> &captures, const boost::wsmatch &m, int offset, int markCount,
+                   std::wstring::const_iterator begin, std::vector<int> &lineStyles)
 {
     for (size_t g = 0; g < captures.size(); g++)
     {
@@ -329,13 +323,15 @@ void styleCaptures(const std::vector<std::pair<int, int>> &captures, const boost
     }
 }
 
-void styleMatch(const Rule &rule, const boost::wsmatch &m, int offset, int markCount, std::wstring::const_iterator begin, std::vector<int> &lineStyles)
+void styleMatch(const Rule &rule, const boost::wsmatch &m, int offset, int markCount,
+                std::wstring::const_iterator begin, std::vector<int> &lineStyles)
 {
     if (rule.captures.empty())
     {
         for (int j = markCount > 0 ? 1 : 0; j <= markCount; j++)
         {
-            for (ptrdiff_t k = m[offset + j].first - begin; m[offset + j].matched && k < m[offset + j].second - begin; k++)
+            for (ptrdiff_t k = m[offset + j].first - begin; m[offset + j].matched && k < m[offset + j].second - begin;
+                 k++)
             {
                 lineStyles[k] = rule.style;
             }
@@ -353,7 +349,8 @@ void fill(std::vector<int> &lineStyles, ptrdiff_t from, ptrdiff_t to, int style)
     }
 }
 
-void scanLine(const std::wstring &line, const Scanner &top, const std::map<const Rule *, Region> &regions, std::vector<OpenRegion> &open, boost::wsmatch &m, boost::wsmatch &endMatch, std::vector<int> &lineStyles)
+void scanLine(const std::wstring &line, const Scanner &top, const std::map<const Rule *, Region> &regions,
+              std::vector<OpenRegion> &open, boost::wsmatch &m, boost::wsmatch &endMatch, std::vector<int> &lineStyles)
 {
     const std::wstring::const_iterator begin = line.begin();
     const ptrdiff_t size = static_cast<ptrdiff_t>(line.size());
@@ -367,12 +364,14 @@ void scanLine(const std::wstring &line, const Scanner &top, const std::map<const
         const int style = open.empty() ? 0 : open.back().style;
         const Scanner &scanner = open.empty() ? top : regions.at(open.back().rule).patterns;
         // rules never match an empty string, so the scan always moves forward
-        bool found = !scanner.rules.empty() && boost::regex_search(begin + p, line.cend(), m, scanner.combined, flags | boost::match_not_null);
+        bool found = !scanner.rules.empty() &&
+                     boost::regex_search(begin + p, line.cend(), m, scanner.combined, flags | boost::match_not_null);
         if (!open.empty())
         {
             // inside a region, its end wins a tie with its patterns
             const Region &region = regions.at(open.back().rule);
-            if (boost::regex_search(begin + p, line.cend(), endMatch, region.end, flags) && (!found || endMatch[0].first <= m[0].first))
+            if (boost::regex_search(begin + p, line.cend(), endMatch, region.end, flags) &&
+                (!found || endMatch[0].first <= m[0].first))
             {
                 fill(lineStyles, p, endMatch[0].second - begin, style);
                 styleCaptures(open.back().rule->endCaptures, endMatch, 0, region.endMarkCount, begin, lineStyles);
@@ -427,14 +426,16 @@ Grammar *LoadGrammar(tinyxml2::XMLElement *config, bool darkModeEnabled)
     Grammar *grammar = new Grammar();
     grammar->lists.self = getRules(config, modeKey);
     tinyxml2::XMLElement *repository = config->FirstChildElement("Repository");
-    for (tinyxml2::XMLElement *r = repository != NULL ? repository->FirstChildElement("Rule") : NULL; r != NULL; r = r->NextSiblingElement("Rule"))
+    for (tinyxml2::XMLElement *r = repository != NULL ? repository->FirstChildElement("Rule") : NULL; r != NULL;
+         r = r->NextSiblingElement("Rule"))
     {
         // like a TextMate repository entry, a rule with match or begin/end is a list
         // of just itself
         Rule rule = getRule(r, modeKey);
         if (r->Attribute("name") != NULL && rule.initialized)
         {
-            grammar->lists.repository[r->Attribute("name")] = rule.kind == Kind::List ? rule.patterns : std::vector<Rule>(1, rule);
+            grammar->lists.repository[r->Attribute("name")] =
+                rule.kind == Kind::List ? rule.patterns : std::vector<Rule>(1, rule);
         }
     }
     std::vector<const Rule *> topRules = flatten(grammar->lists.self, grammar->lists);
@@ -454,7 +455,8 @@ void addStyles(const std::vector<Rule> &rules, std::set<int> &styles)
     for (size_t i = 0; i < rules.size(); i++)
     {
         styles.insert(rules[i].style);
-        const std::vector<std::pair<int, int>> *lists[] = {&rules[i].captures, &rules[i].beginCaptures, &rules[i].endCaptures};
+        const std::vector<std::pair<int, int>> *lists[] = {&rules[i].captures, &rules[i].beginCaptures,
+                                                           &rules[i].endCaptures};
         for (size_t l = 0; l < 3; l++)
         {
             for (size_t g = 0; g < lists[l]->size(); g++)
@@ -471,7 +473,9 @@ std::vector<int> GrammarStyles(Grammar *grammar)
     std::set<int> styles;
     styles.insert(0);
     addStyles(grammar->lists.self, styles);
-    for (std::map<std::string, std::vector<Rule>>::const_iterator r = grammar->lists.repository.begin(); r != grammar->lists.repository.end(); ++r)
+    for (std::map<std::string, std::vector<Rule>>::const_iterator r = grammar->lists.repository.begin();
+         r != grammar->lists.repository.end();
+         ++r)
     {
         addStyles(r->second, styles);
     }
@@ -497,7 +501,8 @@ int stateOf(Grammar &grammar, const std::vector<OpenRegion> &open)
     return static_cast<int>(grammar.states.size() - 1);
 }
 
-void ParseLines(Grammar *grammar, const std::string &text, int state, std::vector<int> &styles, std::vector<int> &lineStates)
+void ParseLines(Grammar *grammar, const std::string &text, int state, std::vector<int> &styles,
+                std::vector<int> &lineStates)
 {
     styles.assign(text.size(), 0);
     lineStates.clear();
@@ -563,19 +568,4 @@ void ParseLines(Grammar *grammar, const std::string &text, int state, std::vecto
             styles[b] = stylePerUnit[i];
         }
     }
-}
-
-int *ParseFile(tinyxml2::XMLElement *config, bool darkModeEnabled, int length, std::string text)
-{
-    Grammar *grammar = LoadGrammar(config, darkModeEnabled);
-    std::vector<int> styles;
-    std::vector<int> lineStates;
-    ParseLines(grammar, text, 0, styles, lineStates);
-    FreeGrammar(grammar);
-    int *result = new int[length];
-    for (int i = 0; i < length; i++)
-    {
-        result[i] = i < static_cast<int>(styles.size()) ? styles[i] : 0;
-    }
-    return result;
 }

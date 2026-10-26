@@ -1,160 +1,111 @@
-#include <fstream>
-#include <iostream>
-#include <string>
-
-#include "menuCmdID.h"
-#include "PluginInterface.h"
-
+#include "RAScript.hpp"
 #include "Config.hpp"
 #include "DebugUtils.hpp"
-#include "LexRAScript.hpp"
-#include "RAScript.hpp"
+#include "PluginInterface.h"
+#include <cstdio>
+#include <string>
 
-const int nbFunc = 2;
+// Notepad++ refuses a plugin without at least one menu item
+const int nbFunc = 1;
 FuncItem funcItem[nbFunc];
 NppData nppData;
 int styleGeneration = 0;
-TCHAR configPath[MAX_PATH];
 const TCHAR NPP_PLUGIN_NAME[] = TEXT("RAScript");
-
-void pluginInit(HANDLE /*hModule*/)
-{
-}
-
-void pluginCleanUp()
-{
-}
 
 void commandMenuInit()
 {
-	::SendMessage(nppData._nppHandle, NPPM_GETPLUGINSCONFIGDIR, MAX_PATH, (LPARAM)configPath);
-	std::wstring configFile(configPath);
-	std::wstring config = L"\\RAScript.xml";
-	configFile = configFile + config;
-	const std::string finalConfigFilePath(configFile.begin(), configFile.end());
-	std::ofstream outFile(finalConfigFilePath);
+    TCHAR configPath[MAX_PATH];
+    ::SendMessage(nppData._nppHandle, NPPM_GETPLUGINSCONFIGDIR, MAX_PATH, (LPARAM)configPath);
+    // a wide path, so a config folder with non-ASCII characters (a user name like José) works
+    std::wstring configFile = std::wstring(configPath) + L"\\RAScript.xml";
+    FILE *outFile = _wfopen(configFile.c_str(), L"w");
+    if (outFile != NULL)
+    {
+        fputs(config_contents.c_str(), outFile);
+        fclose(outFile);
+    }
+    else
+    {
+        DBUG(L"Error opening file: " << configFile);
+    }
 
-	if (outFile.is_open())
-	{
-		outFile << config_contents;
-		outFile.close();
-	}
-	else
-	{
-		DBUG("Error opening file: " << finalConfigFilePath.c_str());
-	}
-
-	setCommand(0, TEXT("Hello Notepad++"), Test, NULL, false);
-}
-
-void commandMenuCleanUp()
-{
+    setCommand(0, TEXT("Hello Notepad++"), Test, NULL, false);
 }
 
 bool setCommand(size_t index, TCHAR *cmdName, PFUNCPLUGINCMD pFunc, ShortcutKey *sk, bool check0nInit)
 {
-	if (index >= nbFunc)
-		return false;
+    if (index >= nbFunc)
+        return false;
 
-	if (!pFunc)
-		return false;
+    if (!pFunc)
+        return false;
 
-	lstrcpy(funcItem[index]._itemName, cmdName);
-	funcItem[index]._pFunc = pFunc;
-	funcItem[index]._init2Check = check0nInit;
-	funcItem[index]._pShKey = sk;
+    lstrcpy(funcItem[index]._itemName, cmdName);
+    funcItem[index]._pFunc = pFunc;
+    funcItem[index]._init2Check = check0nInit;
+    funcItem[index]._pShKey = sk;
 
-	return true;
+    return true;
 }
 
 void Test()
 {
-	::MessageBox(NULL, TEXT("Test"), TEXT("Test"), MB_OK);
+    ::MessageBox(NULL, TEXT("Test"), TEXT("Test"), MB_OK);
 }
 
-BOOL APIENTRY DllMain(HANDLE hModule, DWORD reasonForCall, LPVOID /*lpReserved*/)
+BOOL APIENTRY DllMain(HANDLE /*hModule*/, DWORD /*reasonForCall*/, LPVOID /*lpReserved*/)
 {
-	try
-	{
-
-		switch (reasonForCall)
-		{
-		case DLL_PROCESS_ATTACH:
-			pluginInit(hModule);
-			break;
-
-		case DLL_PROCESS_DETACH:
-			pluginCleanUp();
-			break;
-
-		case DLL_THREAD_ATTACH:
-			break;
-
-		case DLL_THREAD_DETACH:
-			break;
-		}
-	}
-	catch (...)
-	{
-		return FALSE;
-	}
-
-	return TRUE;
+    return TRUE;
 }
 
 extern "C" __declspec(dllexport) void setInfo(NppData notpadPlusData)
 {
-	nppData = notpadPlusData;
-	commandMenuInit();
+    nppData = notpadPlusData;
+    commandMenuInit();
 }
 
 extern "C" __declspec(dllexport) const TCHAR *getName()
 {
-	return NPP_PLUGIN_NAME;
+    return NPP_PLUGIN_NAME;
 }
 
 extern "C" __declspec(dllexport) FuncItem *getFuncsArray(int *nbF)
 {
-	*nbF = nbFunc;
-	return funcItem;
+    *nbF = nbFunc;
+    return funcItem;
 }
 
 extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 {
-	switch (notifyCode->nmhdr.code)
-	{
-	case NPPN_SHUTDOWN:
-	{
-		commandMenuCleanUp();
-		break;
-	}
-	case NPPN_DARKMODECHANGED:	 // dark mode activated
-	case NPPN_BUFFERACTIVATED:	 // change tabs
-	case NPPN_WORDSTYLESUPDATED: // style config change
-	{
-		styleGeneration++; // Notepad++ may have reset the styles' backgrounds
-		int which = -1;
-		::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
-		if (which != -1)
-		{
-			HWND curScintilla = (which == 0) ? nppData._scintillaMainHandle : nppData._scintillaSecondHandle;
-			::SendMessage(curScintilla, SCI_COLOURISE, 0, -1); // restyle entire document
-		}
-		break;
-	}
-	default:
-		return;
-	}
+    switch (notifyCode->nmhdr.code)
+    {
+        case NPPN_DARKMODECHANGED:   // dark mode activated
+        case NPPN_BUFFERACTIVATED:   // change tabs
+        case NPPN_WORDSTYLESUPDATED: // style config change
+        {
+            styleGeneration++; // Notepad++ may have reset the styles' backgrounds
+            int which = -1;
+            ::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
+            if (which != -1)
+            {
+                HWND curScintilla = (which == 0) ? nppData._scintillaMainHandle : nppData._scintillaSecondHandle;
+                ::SendMessage(curScintilla, SCI_COLOURISE, 0, -1); // restyle entire document
+            }
+            break;
+        }
+        default:
+            return;
+    }
 }
 
 extern "C" __declspec(dllexport) LRESULT messageProc(UINT /*Message*/, WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
-	return TRUE;
+    return TRUE;
 }
 
 #ifdef UNICODE
 extern "C" __declspec(dllexport) BOOL isUnicode()
 {
-	return TRUE;
+    return TRUE;
 }
 #endif // UNICODE
