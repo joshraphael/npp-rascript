@@ -25,7 +25,6 @@ arm64/
 *.exp
 *.rascript
 out/
-.vscode/settings.json
 *.vcxproj.user
 src/RAScript.rc
 src/Config.hpp

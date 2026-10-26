@@ -5,6 +5,37 @@ All notable changes to the "npp-rascript" extension will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [[0.5.0](https://github.com/joshraphael/npp-rascript/releases/tag/v0.5.0)] - 2026-MM-DD
+
+[diff](https://github.com/joshraphael/npp-rascript/compare/v0.4.1...v0.5.0)
+
+### Added
+
+- Support for non-ASCII letters in names
+- Begin/end tokens, with tokens inside them, that can span lines
+- Separate styles for each capture group of a token, and for the begin and end of begin/end tokens
+- Reusable groups of tokens with a repository, includes and `$self`
+- Debug builds with timing output for the lexer, which release builds refuse to compile
+- VS Code clangd settings and code formatting for editing the source
+
+### Changed
+
+- RAScript.xml uses the TextMate grammar's rule structure
+- Tokens are matched left to right and one line at a time, like TextMate, instead of painting over each other
+- Faster styling: all tokens are searched with one combined regex, only the edited lines are restyled, and typing no longer redraws the whole view
+- fix last character in a document not being styled
+- fix RAScript.xml not being written or read when the plugin config folder path has non-ASCII characters
+- Build with C++20
+- Bump Notepad++ to v8.9.8.1
+- Bump boostregex to 1.92.0
+- Bump rascript-syntax to v0.5.0
+
+### Removed
+
+- `NORMAL` and `DELIMETER` token types, and the old `<Token type="...">` XML format
+- Unused `GetLexerStatusText` export
+- Unused plugin template code
+
 ## [[0.4.1](https://github.com/joshraphael/npp-rascript/releases/tag/v0.4.1)] - 2025-08-30
 
 [diff](https://github.com/joshraphael/npp-rascript/compare/v0.4.0...v0.4.1)

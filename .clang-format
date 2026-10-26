@@ -1,0 +1,70 @@
+DisableFormat: false
+
+#Some settings are unavailable but should be already taken care of
+
+Language: Cpp
+Standard: Latest
+MaxEmptyLinesToKeep: 1
+ColumnLimit: 120 #should between 80-120 so it'll be easier to see diffs
+UseTab: Never
+IndentWidth: 4
+
+SortIncludes: true
+IncludeBlocks: Preserve #Sorts includes separately
+SortUsingDeclarations: true
+CompactNamespaces: false #Puts em all on the same line
+FixNamespaceComments: true
+NamespaceIndentation: None
+
+AlignAfterOpenBracket: true
+AlignEscapedNewlinesLeft: true
+AlignTrailingComments: true
+AlignConsecutiveAssignments: false
+
+IndentCaseLabels: true
+AllowShortCaseLabelsOnASingleLine: false
+
+AllowAllParametersOfDeclarationOnNextLine: true
+AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+
+AlwaysBreakBeforeMultilineStrings: true
+AlwaysBreakTemplateDeclarations: true
+BinPackParameters: true #two params per-line if too long
+BreakBeforeBinaryOperators: None #so assignment alignments don't get messed up
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: true
+  AfterEnum: true
+  AfterStruct: true
+  AfterControlStatement: true
+  AfterNamespace: false
+  AfterFunction: true
+  BeforeElse: true
+  SplitEmptyFunction: false
+BreakBeforeTernaryOperators: true
+BreakConstructorInitializers: AfterColon
+
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+DerivePointerAlignment: true #Tries to stay consistent with existing code
+ExperimentalAutoDetectBinPacking: true
+IndentWrappedFunctionNames: true
+KeepEmptyLinesAtTheStartOfBlocks: false
+PointerAlignment: Left
+ReflowComments: true
+
+SpaceAfterTemplateKeyword: false
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeParens: ControlStatements
+SpaceInEmptyParentheses: false
+SpacesBeforeTrailingComments: 1
+SpacesInAngles: false
+SpacesInParentheses: false
+SpacesInCStyleCastParentheses: false
+SpacesInSquareBrackets: false
+
+EmptyLineAfterAccessModifier: Never
+EmptyLineBeforeAccessModifier: Always
+IndentAccessModifiers: false
+AccessModifierOffset: -4
