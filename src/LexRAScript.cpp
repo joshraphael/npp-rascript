@@ -159,12 +159,12 @@ void SCI_METHOD LexRAScript::Lex(Sci_PositionU startPos,
                       << " reloaded=" << reloaded << " backgroundsSet=" << backgroundsSet << " | " << timing << "\n");
 }
 
-extern "C" __declspec(dllexport) int SCI_METHOD GetLexerCount()
+extern "C" int SCI_METHOD GetLexerCount()
 {
     return 1;
 }
 
-extern "C" __declspec(dllexport) void SCI_METHOD GetLexerName(unsigned int index, char *name, int buflength)
+extern "C" void SCI_METHOD GetLexerName(unsigned int index, char *name, int buflength)
 {
     if (index == 0)
     {
@@ -172,12 +172,12 @@ extern "C" __declspec(dllexport) void SCI_METHOD GetLexerName(unsigned int index
     }
 }
 
-extern "C" __declspec(dllexport) LexerFactoryFunction SCI_METHOD GetLexerFactory(unsigned int index)
+extern "C" LexerFactoryFunction SCI_METHOD GetLexerFactory(unsigned int index)
 {
     return (index == 0) ? LexRAScript::LexerFactory : nullptr;
 }
 
-extern "C" __declspec(dllexport) Scintilla::ILexer5 *SCI_METHOD CreateLexer(const char *name)
+extern "C" Scintilla::ILexer5 *SCI_METHOD CreateLexer(const char *name)
 {
     if (strcmp(name, "RAScript") == 0)
     {
