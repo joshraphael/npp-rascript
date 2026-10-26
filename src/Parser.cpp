@@ -12,140 +12,150 @@
 
 extern NppData nppData;
 
-struct Token
+// The kinds of TextMate rule: a single regex (match), a region (begin and end), a
+// list of rules (patterns), and an include of another list
+enum class Kind
 {
-    bool initialized;
-    std::string name;
-    std::string type;
-    int style;
-
-    // Can only have start/end or regex based on type
-    std::string start;
-    std::string end;
-    std::string regex;
-
-    // Optional <Group index="n" lightStyle="..." darkStyle="..." /> children:
-    // (capture group, style) pairs, so one token can style each group differently
-    std::vector<std::pair<int, int>> groups;
-
-    // A DELIMETER's child <Token>s and <Include>s, matched between its start and end
-    std::vector<Token> children;
-
-    // An <Include ref="#name" /> or <Include ref="$self" /> (type INCLUDE): the
-    // tokens of a <Repository> <Rule>, or the top-level list, in its place
-    std::string include;
-
-    // A DELIMETER's group styles for its start and end matches: <StartGroup> and
-    // <EndGroup>, or <Group> for both when a side has none (TextMate's
-    // beginCaptures, endCaptures and captures)
-    std::vector<std::pair<int, int>> startGroups;
-    std::vector<std::pair<int, int>> endGroups;
+    Match,
+    BeginEnd,
+    List,
+    Include
 };
 
-std::vector<std::pair<int, int>> getGroups(tinyxml2::XMLElement *e, const char *element, const std::string &modeKey)
+struct Rule
 {
-    std::vector<std::pair<int, int>> groups;
+    bool initialized = false;
+    std::string name;
+    Kind kind = Kind::List;
+    int style = 0;
+
+    // match for a Match rule, begin and end for a BeginEnd rule
+    std::string match;
+    std::string begin;
+    std::string end;
+
+    // Optional <Capture index="n" lightStyle="..." darkStyle="..." /> children:
+    // (capture group, style) pairs, so one rule can style each group differently
+    std::vector<std::pair<int, int>> captures;
+
+    // A BeginEnd rule's group styles for its begin and end matches: <BeginCapture>
+    // and <EndCapture>, or <Capture> for both when a side has none (TextMate's
+    // beginCaptures, endCaptures and captures)
+    std::vector<std::pair<int, int>> beginCaptures;
+    std::vector<std::pair<int, int>> endCaptures;
+
+    // A BeginEnd rule's child <Rule>s and <Include>s, matched between its begin and
+    // end, or a List rule's rules
+    std::vector<Rule> patterns;
+
+    // An <Include ref="#name" /> or <Include ref="$self" />: the rules of a
+    // <Repository> <Rule>, or the top-level list, in its place
+    std::string include;
+};
+
+std::vector<std::pair<int, int>> getCaptures(tinyxml2::XMLElement *e, const char *element, const std::string &modeKey)
+{
+    std::vector<std::pair<int, int>> captures;
     for (tinyxml2::XMLElement *g = e->FirstChildElement(element); g != NULL; g = g->NextSiblingElement(element))
     {
         int index;
         int groupStyle;
         if (g->QueryIntAttribute("index", &index) == tinyxml2::XML_SUCCESS && g->QueryIntAttribute(modeKey.c_str(), &groupStyle) == tinyxml2::XML_SUCCESS)
         {
-            groups.push_back(std::make_pair(index, groupStyle));
+            captures.push_back(std::make_pair(index, groupStyle));
         }
     }
-    return groups;
+    return captures;
 }
 
-std::vector<Token> getTokens(tinyxml2::XMLElement *parent, const std::string &modeKey);
+std::vector<Rule> getRules(tinyxml2::XMLElement *parent, const std::string &modeKey);
 
-Token getToken(tinyxml2::XMLElement *e, std::string modeKey)
+// A <Rule>'s kind follows from its attributes, like a TextMate rule: match makes a
+// Match rule, begin and end a BeginEnd rule, and neither a List of its child
+// rules. name is only a label
+Rule getRule(tinyxml2::XMLElement *e, std::string modeKey)
 {
-    Token t;
+    Rule t;
     t.initialized = false;
     const char *nameAttr = e->Attribute("name");
-    const char *typeAttr = e->Attribute("type");
-    std::vector<std::pair<int, int>> groups = getGroups(e, "Group", modeKey);
-    // A NORMAL token's own style is only optional when its groups have styles. A
-    // DELIMETER's is always optional: without one, it takes its parent's style
+    const char *matchAttr = e->Attribute("match");
+    const char *beginAttr = e->Attribute("begin");
+    const char *endAttr = e->Attribute("end");
+    std::vector<std::pair<int, int>> captures = getCaptures(e, "Capture", modeKey);
+    // A Match rule's own style is only optional when its captures have styles. A
+    // BeginEnd rule's is always optional: without one, it takes its parent's style
     int style = 0;
     tinyxml2::XMLError eResult = e->QueryIntAttribute(modeKey.c_str(), &style);
-    if (nameAttr != NULL && typeAttr != NULL)
+    t.name = nameAttr != NULL ? nameAttr : "";
+    t.style = style;
+    if (matchAttr != NULL)
     {
-        std::string name = nameAttr;
-        std::string type = typeAttr;
-        if (type == "NORMAL" && (eResult == tinyxml2::XML_SUCCESS || !groups.empty()))
+        if (eResult == tinyxml2::XML_SUCCESS || !captures.empty())
         {
-            const char *regexAttr = e->Attribute("regex");
-            if (regexAttr != NULL)
-            {
-                t.initialized = true;
-                t.name = name;
-                t.type = type;
-                t.style = style;
-                t.regex = regexAttr;
-                t.groups = groups;
-                return t;
-            }
+            t.initialized = true;
+            t.kind = Kind::Match;
+            t.match = matchAttr;
+            t.captures = captures;
         }
-        if (type == "DELIMETER")
+        return t;
+    }
+    if (beginAttr != NULL && endAttr != NULL)
+    {
+        t.initialized = true;
+        t.kind = Kind::BeginEnd;
+        t.begin = beginAttr;
+        t.end = endAttr;
+        t.beginCaptures = getCaptures(e, "BeginCapture", modeKey);
+        t.endCaptures = getCaptures(e, "EndCapture", modeKey);
+        if (t.beginCaptures.empty())
         {
-            const char *startAttr = e->Attribute("start");
-            const char *endAttr = e->Attribute("end");
-            if (startAttr != NULL && endAttr != NULL)
-            {
-                t.initialized = true;
-                t.name = name;
-                t.type = type;
-                t.style = style;
-                t.start = startAttr;
-                t.end = endAttr;
-                t.startGroups = getGroups(e, "StartGroup", modeKey);
-                t.endGroups = getGroups(e, "EndGroup", modeKey);
-                if (t.startGroups.empty())
-                {
-                    t.startGroups = groups;
-                }
-                if (t.endGroups.empty())
-                {
-                    t.endGroups = groups;
-                }
-                t.children = getTokens(e, modeKey);
-                return t;
-            }
+            t.beginCaptures = captures;
         }
+        if (t.endCaptures.empty())
+        {
+            t.endCaptures = captures;
+        }
+        t.patterns = getRules(e, modeKey);
+        return t;
+    }
+    if (beginAttr == NULL && endAttr == NULL)
+    {
+        t.initialized = true;
+        t.kind = Kind::List;
+        t.style = 0;
+        t.patterns = getRules(e, modeKey);
     }
     return t;
 }
 
-std::vector<Token> getTokens(tinyxml2::XMLElement *parent, const std::string &modeKey)
+std::vector<Rule> getRules(tinyxml2::XMLElement *parent, const std::string &modeKey)
 {
-    std::vector<Token> tokens;
+    std::vector<Rule> rules;
     for (tinyxml2::XMLElement *e = parent->FirstChildElement(); e != NULL; e = e->NextSiblingElement())
     {
         std::string element = e->Name();
-        if (element == "Token")
+        if (element == "Rule")
         {
-            Token token = getToken(e, modeKey);
-            if (token.initialized)
+            Rule rule = getRule(e, modeKey);
+            if (rule.initialized)
             {
-                tokens.push_back(token);
+                rules.push_back(rule);
             }
         }
         else if (element == "Include" && e->Attribute("ref") != NULL)
         {
-            Token include;
+            Rule include;
             include.initialized = true;
             include.style = 0;
-            include.type = "INCLUDE";
+            include.kind = Kind::Include;
             include.include = e->Attribute("ref");
-            tokens.push_back(include);
+            rules.push_back(include);
         }
     }
-    return tokens;
+    return rules;
 }
 
-// Converts UTF-8 to UTF-16 so the token regexes can run as boost::wregex, whose
+// Converts UTF-8 to UTF-16 so the rules' regexes can run as boost::wregex, whose
 // Windows character classes (\w, [[:alpha:]]) know non-ASCII letters like é and
 // Ω. Scintilla colors bytes, not UTF-16 units, so byteOf records the byte each
 // UTF-16 unit came from, plus one last entry for the end of the text.
@@ -191,65 +201,69 @@ std::wstring toUtf16(const std::string &text)
 
 struct Scanner
 {
-    std::vector<const Token *> tokens;
+    std::vector<const Rule *> rules;
     std::vector<int> offsets;
     std::vector<int> markCounts;
     boost::wregex combined;
 };
 
-// What is matched inside an open DELIMETER: its children (one Scanner) and its
+// What is matched inside an open BeginEnd rule: its patterns (one Scanner) and its
 // end, searched on its own so it can match an empty string ($ or a lookahead)
 struct Region
 {
-    Scanner children;
+    Scanner patterns;
     boost::wregex end;
     int endMarkCount;
 };
 
-// A NORMAL token is matched by its regex, a DELIMETER by its start
-Scanner buildScanner(const std::vector<const Token *> &tokens)
+// A Match rule is matched by its match, a BeginEnd rule by its begin
+Scanner buildScanner(const std::vector<const Rule *> &rules)
 {
     Scanner scanner;
     std::wstring combined;
     int group = 1;
-    for (size_t i = 0; i < tokens.size(); i++)
+    for (size_t i = 0; i < rules.size(); i++)
     {
-        std::wstring regex = toUtf16(tokens[i]->type == "NORMAL" ? tokens[i]->regex : tokens[i]->start);
-        scanner.tokens.push_back(tokens[i]);
+        std::wstring regex = toUtf16(rules[i]->kind == Kind::Match ? rules[i]->match : rules[i]->begin);
+        scanner.rules.push_back(rules[i]);
         scanner.offsets.push_back(group);
         scanner.markCounts.push_back(static_cast<int>(boost::wregex(regex).mark_count()));
         group += 1 + scanner.markCounts.back();
         combined += (combined.empty() ? L"(" : L"|(") + regex + L")";
     }
-    if (!scanner.tokens.empty())
+    if (!scanner.rules.empty())
     {
         scanner.combined = boost::wregex(combined);
     }
     return scanner;
 }
 
-// The top-level token list ($self) and the <Repository>'s named <Rule>s
-struct TokenLists
+// The top-level rules ($self) and the <Repository>'s named <Rule>s
+struct RuleLists
 {
-    std::vector<Token> self;
-    std::map<std::string, std::vector<Token>> repository;
+    std::vector<Rule> self;
+    std::map<std::string, std::vector<Rule>> repository;
 };
 
-// The tokens to scan for a list: each <Include> replaced in place by the tokens
-// of the list it names. A list already being expanded is skipped, so includes
-// can't loop, and a DELIMETER's children are their own list, expanded for its
-// region
-void flatten(const std::vector<Token> &list, const TokenLists &lists, std::set<const std::vector<Token> *> &expanding, std::vector<const Token *> &tokens)
+// The rules to scan for a list: each <Include> or List rule replaced in place by
+// the rules it holds. A list already being expanded is skipped, so includes can't
+// loop, and a BeginEnd rule's patterns are their own list, expanded for its region
+void flatten(const std::vector<Rule> &list, const RuleLists &lists, std::set<const std::vector<Rule> *> &expanding, std::vector<const Rule *> &rules)
 {
     expanding.insert(&list);
     for (size_t i = 0; i < list.size(); i++)
     {
-        if (list[i].type != "INCLUDE")
+        if (list[i].kind == Kind::List)
         {
-            tokens.push_back(&list[i]);
+            flatten(list[i].patterns, lists, expanding, rules);
             continue;
         }
-        const std::vector<Token> *included = NULL;
+        if (list[i].kind != Kind::Include)
+        {
+            rules.push_back(&list[i]);
+            continue;
+        }
+        const std::vector<Rule> *included = NULL;
         if (list[i].include == "$self")
         {
             included = &lists.self;
@@ -260,75 +274,75 @@ void flatten(const std::vector<Token> &list, const TokenLists &lists, std::set<c
         }
         if (included != NULL && !expanding.count(included))
         {
-            flatten(*included, lists, expanding, tokens);
+            flatten(*included, lists, expanding, rules);
         }
     }
     expanding.erase(&list);
 }
 
-std::vector<const Token *> flatten(const std::vector<Token> &list, const TokenLists &lists)
+std::vector<const Rule *> flatten(const std::vector<Rule> &list, const RuleLists &lists)
 {
-    std::set<const std::vector<Token> *> expanding;
-    std::vector<const Token *> tokens;
-    flatten(list, lists, expanding, tokens);
-    return tokens;
+    std::set<const std::vector<Rule> *> expanding;
+    std::vector<const Rule *> rules;
+    flatten(list, lists, expanding, rules);
+    return rules;
 }
 
-void buildRegions(const std::vector<const Token *> &tokens, const TokenLists &lists, std::map<const Token *, Region> &regions)
+void buildRegions(const std::vector<const Rule *> &rules, const RuleLists &lists, std::map<const Rule *, Region> &regions)
 {
-    for (size_t i = 0; i < tokens.size(); i++)
+    for (size_t i = 0; i < rules.size(); i++)
     {
-        if (tokens[i]->type != "DELIMETER" || regions.count(tokens[i]))
+        if (rules[i]->kind != Kind::BeginEnd || regions.count(rules[i]))
         {
             continue;
         }
-        std::vector<const Token *> children = flatten(tokens[i]->children, lists);
-        Region &region = regions[tokens[i]];
-        region.children = buildScanner(children);
-        region.end = boost::wregex(toUtf16(tokens[i]->end));
+        std::vector<const Rule *> patterns = flatten(rules[i]->patterns, lists);
+        Region &region = regions[rules[i]];
+        region.patterns = buildScanner(patterns);
+        region.end = boost::wregex(toUtf16(rules[i]->end));
         region.endMarkCount = static_cast<int>(region.end.mark_count());
-        buildRegions(children, lists, regions);
+        buildRegions(patterns, lists, regions);
     }
 }
 
-// The begin/end tokens open at the end of a line, carried to the next line,
+// The BeginEnd rules open at the end of a line, carried to the next line,
 // each with the style its text gets (its own, or its parent's when it has none)
 struct OpenRegion
 {
-    const Token *token;
+    const Rule *rule;
     int style;
 };
 
-void styleGroups(const std::vector<std::pair<int, int>> &groups, const boost::wsmatch &m, int offset, int markCount, std::wstring::const_iterator begin, std::vector<int> &lineStyles)
+void styleCaptures(const std::vector<std::pair<int, int>> &captures, const boost::wsmatch &m, int offset, int markCount, std::wstring::const_iterator begin, std::vector<int> &lineStyles)
 {
-    for (size_t g = 0; g < groups.size(); g++)
+    for (size_t g = 0; g < captures.size(); g++)
     {
-        int j = groups[g].first;
+        int j = captures[g].first;
         if (j < 0 || j > markCount || !m[offset + j].matched)
         {
             continue;
         }
         for (ptrdiff_t k = m[offset + j].first - begin; k < m[offset + j].second - begin; k++)
         {
-            lineStyles[k] = groups[g].second;
+            lineStyles[k] = captures[g].second;
         }
     }
 }
 
-void styleMatch(const Token &token, const boost::wsmatch &m, int offset, int markCount, std::wstring::const_iterator begin, std::vector<int> &lineStyles)
+void styleMatch(const Rule &rule, const boost::wsmatch &m, int offset, int markCount, std::wstring::const_iterator begin, std::vector<int> &lineStyles)
 {
-    if (token.groups.empty())
+    if (rule.captures.empty())
     {
         for (int j = markCount > 0 ? 1 : 0; j <= markCount; j++)
         {
             for (ptrdiff_t k = m[offset + j].first - begin; m[offset + j].matched && k < m[offset + j].second - begin; k++)
             {
-                lineStyles[k] = token.style;
+                lineStyles[k] = rule.style;
             }
         }
         return;
     }
-    styleGroups(token.groups, m, offset, markCount, begin, lineStyles);
+    styleCaptures(rule.captures, m, offset, markCount, begin, lineStyles);
 }
 
 void fill(std::vector<int> &lineStyles, ptrdiff_t from, ptrdiff_t to, int style)
@@ -339,7 +353,7 @@ void fill(std::vector<int> &lineStyles, ptrdiff_t from, ptrdiff_t to, int style)
     }
 }
 
-void scanLine(const std::wstring &line, const Scanner &top, const std::map<const Token *, Region> &regions, std::vector<OpenRegion> &open, boost::wsmatch &m, boost::wsmatch &endMatch, std::vector<int> &lineStyles)
+void scanLine(const std::wstring &line, const Scanner &top, const std::map<const Rule *, Region> &regions, std::vector<OpenRegion> &open, boost::wsmatch &m, boost::wsmatch &endMatch, std::vector<int> &lineStyles)
 {
     const std::wstring::const_iterator begin = line.begin();
     const ptrdiff_t size = static_cast<ptrdiff_t>(line.size());
@@ -351,17 +365,17 @@ void scanLine(const std::wstring &line, const Scanner &top, const std::map<const
             flags |= boost::match_prev_avail;
         }
         const int style = open.empty() ? 0 : open.back().style;
-        const Scanner &scanner = open.empty() ? top : regions.at(open.back().token).children;
-        // tokens never match an empty string, so the scan always moves forward
-        bool found = !scanner.tokens.empty() && boost::regex_search(begin + p, line.cend(), m, scanner.combined, flags | boost::match_not_null);
+        const Scanner &scanner = open.empty() ? top : regions.at(open.back().rule).patterns;
+        // rules never match an empty string, so the scan always moves forward
+        bool found = !scanner.rules.empty() && boost::regex_search(begin + p, line.cend(), m, scanner.combined, flags | boost::match_not_null);
         if (!open.empty())
         {
-            // inside a region, its end wins a tie with its children
-            const Region &region = regions.at(open.back().token);
+            // inside a region, its end wins a tie with its patterns
+            const Region &region = regions.at(open.back().rule);
             if (boost::regex_search(begin + p, line.cend(), endMatch, region.end, flags) && (!found || endMatch[0].first <= m[0].first))
             {
                 fill(lineStyles, p, endMatch[0].second - begin, style);
-                styleGroups(open.back().token->endGroups, endMatch, 0, region.endMarkCount, begin, lineStyles);
+                styleCaptures(open.back().rule->endCaptures, endMatch, 0, region.endMarkCount, begin, lineStyles);
                 open.pop_back();
                 p = endMatch[0].second - begin;
                 continue;
@@ -377,19 +391,19 @@ void scanLine(const std::wstring &line, const Scanner &top, const std::map<const
         {
             t++;
         }
-        const Token &token = *scanner.tokens[t];
+        const Rule &rule = *scanner.rules[t];
         fill(lineStyles, p, m[0].first - begin, style);
-        if (token.type == "DELIMETER")
+        if (rule.kind == Kind::BeginEnd)
         {
-            OpenRegion region = {&token, token.style != 0 ? token.style : style};
+            OpenRegion region = {&rule, rule.style != 0 ? rule.style : style};
             fill(lineStyles, m[0].first - begin, m[0].second - begin, region.style);
-            styleGroups(token.startGroups, m, scanner.offsets[t], scanner.markCounts[t], begin, lineStyles);
+            styleCaptures(rule.beginCaptures, m, scanner.offsets[t], scanner.markCounts[t], begin, lineStyles);
             open.push_back(region);
         }
         else
         {
             fill(lineStyles, m[0].first - begin, m[0].second - begin, style);
-            styleMatch(token, m, scanner.offsets[t], scanner.markCounts[t], begin, lineStyles);
+            styleMatch(rule, m, scanner.offsets[t], scanner.markCounts[t], begin, lineStyles);
         }
         p = m[0].second - begin;
     }
@@ -401,9 +415,9 @@ void scanLine(const std::wstring &line, const Scanner &top, const std::map<const
 // no open regions
 struct Grammar
 {
-    TokenLists lists;
+    RuleLists lists;
     Scanner top;
-    std::map<const Token *, Region> regions;
+    std::map<const Rule *, Region> regions;
     std::vector<std::vector<OpenRegion>> states;
 };
 
@@ -411,18 +425,21 @@ Grammar *LoadGrammar(tinyxml2::XMLElement *config, bool darkModeEnabled)
 {
     std::string modeKey = darkModeEnabled ? "darkStyle" : "lightStyle";
     Grammar *grammar = new Grammar();
-    grammar->lists.self = getTokens(config, modeKey);
+    grammar->lists.self = getRules(config, modeKey);
     tinyxml2::XMLElement *repository = config->FirstChildElement("Repository");
     for (tinyxml2::XMLElement *r = repository != NULL ? repository->FirstChildElement("Rule") : NULL; r != NULL; r = r->NextSiblingElement("Rule"))
     {
-        if (r->Attribute("name") != NULL)
+        // like a TextMate repository entry, a rule with match or begin/end is a list
+        // of just itself
+        Rule rule = getRule(r, modeKey);
+        if (r->Attribute("name") != NULL && rule.initialized)
         {
-            grammar->lists.repository[r->Attribute("name")] = getTokens(r, modeKey);
+            grammar->lists.repository[r->Attribute("name")] = rule.kind == Kind::List ? rule.patterns : std::vector<Rule>(1, rule);
         }
     }
-    std::vector<const Token *> topTokens = flatten(grammar->lists.self, grammar->lists);
-    grammar->top = buildScanner(topTokens);
-    buildRegions(topTokens, grammar->lists, grammar->regions);
+    std::vector<const Rule *> topRules = flatten(grammar->lists.self, grammar->lists);
+    grammar->top = buildScanner(topRules);
+    buildRegions(topRules, grammar->lists, grammar->regions);
     grammar->states.push_back(std::vector<OpenRegion>());
     return grammar;
 }
@@ -432,12 +449,12 @@ void FreeGrammar(Grammar *grammar)
     delete grammar;
 }
 
-void addStyles(const std::vector<Token> &tokens, std::set<int> &styles)
+void addStyles(const std::vector<Rule> &rules, std::set<int> &styles)
 {
-    for (size_t i = 0; i < tokens.size(); i++)
+    for (size_t i = 0; i < rules.size(); i++)
     {
-        styles.insert(tokens[i].style);
-        const std::vector<std::pair<int, int>> *lists[] = {&tokens[i].groups, &tokens[i].startGroups, &tokens[i].endGroups};
+        styles.insert(rules[i].style);
+        const std::vector<std::pair<int, int>> *lists[] = {&rules[i].captures, &rules[i].beginCaptures, &rules[i].endCaptures};
         for (size_t l = 0; l < 3; l++)
         {
             for (size_t g = 0; g < lists[l]->size(); g++)
@@ -445,7 +462,7 @@ void addStyles(const std::vector<Token> &tokens, std::set<int> &styles)
                 styles.insert((*lists[l])[g].second);
             }
         }
-        addStyles(tokens[i].children, styles);
+        addStyles(rules[i].patterns, styles);
     }
 }
 
@@ -454,7 +471,7 @@ std::vector<int> GrammarStyles(Grammar *grammar)
     std::set<int> styles;
     styles.insert(0);
     addStyles(grammar->lists.self, styles);
-    for (std::map<std::string, std::vector<Token>>::const_iterator r = grammar->lists.repository.begin(); r != grammar->lists.repository.end(); ++r)
+    for (std::map<std::string, std::vector<Rule>>::const_iterator r = grammar->lists.repository.begin(); r != grammar->lists.repository.end(); ++r)
     {
         addStyles(r->second, styles);
     }
@@ -469,7 +486,7 @@ int stateOf(Grammar &grammar, const std::vector<OpenRegion> &open)
         bool same = state.size() == open.size();
         for (size_t k = 0; same && k < open.size(); k++)
         {
-            same = state[k].token == open[k].token && state[k].style == open[k].style;
+            same = state[k].rule == open[k].rule && state[k].style == open[k].style;
         }
         if (same)
         {
@@ -484,7 +501,7 @@ void ParseLines(Grammar *grammar, const std::string &text, int state, std::vecto
 {
     styles.assign(text.size(), 0);
     lineStates.clear();
-    if (grammar->top.tokens.empty())
+    if (grammar->top.rules.empty())
     {
         return;
     }
