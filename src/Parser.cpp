@@ -326,17 +326,12 @@ void styleCaptures(const std::vector<std::pair<int, int>> &captures, const boost
 void styleMatch(const Rule &rule, const boost::wsmatch &m, int offset, int markCount,
                 std::wstring::const_iterator begin, std::vector<int> &lineStyles)
 {
-    if (rule.captures.empty())
+    if (rule.style != 0)
     {
-        for (int j = markCount > 0 ? 1 : 0; j <= markCount; j++)
+        for (ptrdiff_t k = m[offset].first - begin; k < m[offset].second - begin; k++)
         {
-            for (ptrdiff_t k = m[offset + j].first - begin; m[offset + j].matched && k < m[offset + j].second - begin;
-                 k++)
-            {
-                lineStyles[k] = rule.style;
-            }
+            lineStyles[k] = rule.style;
         }
-        return;
     }
     styleCaptures(rule.captures, m, offset, markCount, begin, lineStyles);
 }
