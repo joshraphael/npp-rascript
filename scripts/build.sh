@@ -63,7 +63,7 @@ ${ARCH}-w64-mingw32-g++ ${BUILD_OPTIONS} ${DBUG} \
 -c src/LexRAScript.cpp -o out/LexRAScript.o
 
 # Resource File
-${ARCH}-w64-mingw32-windres src/RAScript.rc -o out/rc.o
+${ARCH}-w64-mingw32-windres --include-dir src src/RAScript.rc -o out/rc.o
 
 # RAScript
 ${ARCH}-w64-mingw32-g++ ${BUILD_OPTIONS} ${DBUG} \

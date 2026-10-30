@@ -6,8 +6,7 @@ export VERSION_MINOR="0"
 export VERSION_PATCH="0"
 export SYNTAX_URL="https://github.com/joshraphael/rascript-syntax/releases/download/${RASCRIPT_SYNTAX_VERSION}/RAScript.xml"
 # export SYNTAX_URL="https://raw.githubusercontent.com/joshraphael/rascript-syntax/refs/heads/main/syntaxes/RAScript.xml"
-curl -fsSL -o temp/RAScript.xml ${SYNTAX_URL}
-export RASCRIPT_NPP_SYNTAX=$(cat temp/RAScript.xml)
+curl -fsSL -o src/RAScript.xml ${SYNTAX_URL}
 
 if [[ ${GITHUB_REF_TYPE} == "tag" && ${GITHUB_REF_NAME} != "" ]]; then
     VERSION="${GITHUB_REF_NAME#v}"
@@ -17,4 +16,3 @@ if [[ ${GITHUB_REF_TYPE} == "tag" && ${GITHUB_REF_NAME} != "" ]]; then
 fi
 
 cat templates/RAScript.rc.template | envsubst > src/RAScript.rc
-cat templates/Config.hpp.template | envsubst > src/Config.hpp
