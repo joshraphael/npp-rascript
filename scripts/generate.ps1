@@ -6,10 +6,8 @@ New-Item -Name "out" -ItemType Directory
 Remove-Item -Path "src\notepad-plus-plus" -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -Path "src\tinyxml2" -Force -Recurse -ErrorAction SilentlyContinue
 Remove-Item -Path "src\regex" -Force -Recurse -ErrorAction SilentlyContinue
-Remove-Item -Path "temp" -Force -Recurse -ErrorAction SilentlyContinue
-New-Item -Name "temp" -ItemType Directory
 Remove-Item -Path "src\RAScript.rc" -Force -ErrorAction SilentlyContinue
-Remove-Item -Path "src\Config.hpp" -Force -ErrorAction SilentlyContinue
+Remove-Item -Path "src\RAScript.xml" -Force -ErrorAction SilentlyContinue
 git submodule update --init --recursive
 cd src/notepad-plus-plus
 git checkout tags/$Env:NPP_VERSION
@@ -26,8 +24,7 @@ $major = "0"
 $minor = "0"
 $patch = "0"
 $syntaxUrl = "https://github.com/joshraphael/rascript-syntax/releases/download/$Env:RASCRIPT_SYNTAX_VERSION/RAScript.xml"
-Invoke-WebRequest -Uri $syntaxUrl -OutFile "temp\RAScript.xml"
-$rascriptNppSyntax = Get-Content -Path "temp\RAScript.xml" -Raw
+Invoke-WebRequest -Uri $syntaxUrl -OutFile "src\RAScript.xml"
 
 if(($Env:GITHUB_REF_TYPE -eq "tag") -and ($Env:GITHUB_REF_NAME -ne "") -and ($Env:GITHUB_REF_NAME.StartsWith("v"))) {
     $version = $Env:GITHUB_REF_NAME.Substring(1) # remove the leading v
@@ -38,4 +35,3 @@ if(($Env:GITHUB_REF_TYPE -eq "tag") -and ($Env:GITHUB_REF_NAME -ne "") -and ($En
 }
 
 get-content templates/RAScript.rc.template | %{$_ -replace "\$\{VERSION_MAJOR\}", $major} | %{$_ -replace "\$\{VERSION_MINOR\}", $minor} | %{$_ -replace "\$\{VERSION_PATCH\}", $patch} | Out-File src/RAScript.rc
-get-content templates/Config.hpp.template | %{$_ -replace "\$\{RASCRIPT_NPP_SYNTAX\}", $rascriptNppSyntax} | Out-File src/Config.hpp

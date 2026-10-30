@@ -18,10 +18,8 @@ clean: # works on windows and linux, careful changing this
 	rm -rf src/notepad-plus-plus
 	rm -rf src/tinyxml2
 	rm -rf src/regex
-	rm -rf temp/
-	mkdir -p temp/
 	rm -f src/RAScript.rc
-	rm -f src/Config.hpp
+	rm -f src/RAScript.xml
 	git submodule update --init --recursive
 	cd src/notepad-plus-plus && git fetch && git checkout tags/${NPP_VERSION}
 	cd src/tinyxml2 && git fetch && git checkout tags/${TINYXML2_VERSION}

@@ -1,5 +1,4 @@
 #include "RAScript.hpp"
-#include "Config.hpp"
 #include "DebugUtils.hpp"
 #include "PluginInterface.h"
 #include <cstdio>
@@ -10,6 +9,7 @@ const int nbFunc = 1;
 FuncItem funcItem[nbFunc];
 NppData nppData;
 int styleGeneration = 0;
+HINSTANCE dllModule = NULL;
 const TCHAR NPP_PLUGIN_NAME[] = TEXT("RAScript");
 
 void commandMenuInit()
@@ -18,15 +18,27 @@ void commandMenuInit()
     ::SendMessage(nppData._nppHandle, NPPM_GETPLUGINSCONFIGDIR, MAX_PATH, (LPARAM)configPath);
     // a wide path, so a config folder with non-ASCII characters (a user name like José) works
     std::wstring configFile = std::wstring(configPath) + L"\\RAScript.xml";
-    FILE *outFile = _wfopen(configFile.c_str(), L"w");
-    if (outFile != NULL)
+    // RAScript.xml is built into the DLL, so the DLL is all an install needs
+    HRSRC resource = FindResourceW(dllModule, L"RASCRIPT_XML", RT_RCDATA);
+    HGLOBAL loaded = resource != NULL ? LoadResource(dllModule, resource) : NULL;
+    const void *contents = loaded != NULL ? LockResource(loaded) : NULL;
+    if (contents == NULL)
     {
-        fputs(config_contents.c_str(), outFile);
-        fclose(outFile);
+        DBUG(L"RAScript.xml resource not found");
     }
     else
     {
-        DBUG(L"Error opening file: " << configFile);
+        // binary mode, so the file is written byte for byte as released
+        FILE *outFile = _wfopen(configFile.c_str(), L"wb");
+        if (outFile != NULL)
+        {
+            fwrite(contents, 1, SizeofResource(dllModule, resource), outFile);
+            fclose(outFile);
+        }
+        else
+        {
+            DBUG(L"Error opening file: " << configFile);
+        }
     }
 
     setCommand(0, TEXT("Hello Notepad++"), Test, NULL, false);
@@ -53,8 +65,12 @@ void Test()
     ::MessageBox(NULL, TEXT("Test"), TEXT("Test"), MB_OK);
 }
 
-BOOL APIENTRY DllMain(HANDLE /*hModule*/, DWORD /*reasonForCall*/, LPVOID /*lpReserved*/)
+BOOL APIENTRY DllMain(HANDLE hModule, DWORD reasonForCall, LPVOID /*lpReserved*/)
 {
+    if (reasonForCall == DLL_PROCESS_ATTACH)
+    {
+        dllModule = static_cast<HINSTANCE>(hModule);
+    }
     return TRUE;
 }
 

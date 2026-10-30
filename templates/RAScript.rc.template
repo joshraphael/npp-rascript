@@ -32,3 +32,5 @@ BEGIN
 		END
 	END
 END
+
+RASCRIPT_XML RCDATA "RAScript.xml"

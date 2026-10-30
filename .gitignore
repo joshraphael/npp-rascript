@@ -27,5 +27,4 @@ arm64/
 out/
 *.vcxproj.user
 src/RAScript.rc
-src/Config.hpp
-temp/
+src/RAScript.xml
