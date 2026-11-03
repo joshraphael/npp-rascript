@@ -28,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Build with C++20
 - Bump Notepad++ to v8.9.8.1
 - Bump boostregex to 1.92.0
-- Bump rascript-syntax to v0.5.0
+- Bump rascript-syntax to v0.5.1
 
 ### Removed
 
